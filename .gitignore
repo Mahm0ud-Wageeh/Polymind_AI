@@ -1,0 +1,39 @@
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ---- Node / frontend ----
+app/node_modules/
+app/dist/
+app/coverage/
+app/playwright-report/
+app/test-results/
+app/.vite/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- PHP / backend ----
+backend/vendor/
+backend/node_modules/
+backend/.env
+backend/.env.backup
+backend/storage/*.key
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+backend/public/storage
+backend/.phpunit.result.cache
+backend/bootstrap/cache/*.php
+
+# ---- Env / secrets ----
+.env
+.env.*.local
+*.pem
+
+# ---- Docker ----
+docker-compose.override.yml
