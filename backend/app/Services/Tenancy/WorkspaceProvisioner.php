@@ -24,7 +24,11 @@ class WorkspaceProvisioner
                 'plan' => 'free',
             ]);
 
-            $org->members()->attach($user->id, ['role' => 'owner', 'joined_at' => now()]);
+            $org->members()->attach($user->id, [
+                'id' => (string) Str::uuid(),
+                'role' => 'owner',
+                'joined_at' => now(),
+            ]);
 
             $workspace = $org->workspaces()->create([
                 'name' => 'Personal Workspace',
@@ -49,7 +53,7 @@ class WorkspaceProvisioner
         $slug = $base;
         $i = 1;
         while (DB::table($table)->where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $i++;
+            $slug = $base.'-'.$i++;
         }
 
         return $slug;

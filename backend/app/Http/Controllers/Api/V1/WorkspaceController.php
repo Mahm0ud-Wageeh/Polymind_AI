@@ -29,7 +29,7 @@ class WorkspaceController extends Controller
             403
         );
 
-        return Workspace::create($data + ['slug' => Str::slug($data['name']) . '-' . Str::random(5)]);
+        return Workspace::create($data + ['slug' => Str::slug($data['name']).'-'.Str::random(5)]);
     }
 
     public function show(Request $request, Workspace $workspace)

@@ -69,6 +69,22 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['sometimes', 'string', 'max:255'],
+            'theme' => ['sometimes', 'nullable', 'in:light,dark,system'],
+            'locale' => ['sometimes', 'nullable', 'string', 'max:12'],
+        ]);
+
+        $request->user()->update($data);
+
+        return response()->json([
+            'user' => $request->user()->fresh()->load('currentWorkspace'),
+            'roles' => $request->user()->getRoleNames(),
+        ]);
+    }
+
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()?->delete();

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'wouter'
 import { toast } from 'sonner'
 import { useStore } from '@/store/useStore'
 import { cn } from '@/lib/utils'
@@ -56,13 +57,14 @@ const shortcuts = [
 ]
 
 export function Settings() {
-  const { setCurrentPage, settingsTab, setSettingsTab, theme, setTheme, preferences, updatePreferences } = useStore()
+  const { settingsTab, setSettingsTab, theme, setTheme, preferences, updatePreferences } = useStore()
+  const [, setLocation] = useLocation()
 
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="h-14 border-b border-border flex items-center px-4 gap-4">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentPage('workspace')}>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setLocation('/dashboard')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-lg font-semibold">Settings</h1>
@@ -592,7 +594,7 @@ function BillingTab() {
     setBusy(planKey)
     try {
       const { url } = await billingService.checkout(planKey)
-      window.location.href = url
+      window.location.assign(url)
     } catch (err) {
       toast.error((err as Error)?.message ?? 'Could not start checkout')
     } finally {

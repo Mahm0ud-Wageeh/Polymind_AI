@@ -43,6 +43,19 @@ class MessageController extends Controller
         return response()->noContent();
     }
 
+    public function update(Request $request, Conversation $conversation, Message $message)
+    {
+        $this->authorizeOwner($request, $conversation);
+        abort_unless($message->conversation_id === $conversation->id, 404);
+        abort_unless($message->role === 'user', 403, 'Only your own messages can be edited.');
+
+        $message->update($request->validate([
+            'content' => ['required', 'string'],
+        ]));
+
+        return new MessageResource($message);
+    }
+
     protected function authorizeOwner(Request $request, Conversation $conversation): void
     {
         abort_unless($conversation->user_id === $request->user()->id, 403);

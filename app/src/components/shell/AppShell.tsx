@@ -1,14 +1,21 @@
 import { useEffect } from 'react'
+import { Outlet } from 'react-router'
 import { useStore } from '@/store/useStore'
 import { useMediaQuery } from '@/hooks/use-mobile'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
-import { ChatArea } from '@/components/chat/ChatArea'
-import { Composer } from '@/components/chat/Composer'
 import { RightPanel } from '@/components/panel/RightPanel'
 import { CommandPalette } from '@/components/command/CommandPalette'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
+/**
+ * AppShell — the main authenticated layout route.
+ *
+ * Renders the sidebar, topbar, and context panel around a central
+ * <Outlet /> where module pages render. Each module page decides its own
+ * content (e.g. Workspace fills the outlet with ChatArea + Composer;
+ * Dashboard fills it with stats; Designer fills it with the form, etc.).
+ */
 export function AppShell() {
   const {
     mobileSidebarOpen,
@@ -46,11 +53,10 @@ export function AppShell() {
           </SheetContent>
         </Sheet>
 
-        {/* Main Content */}
+        {/* Main Content — module pages render here via <Outlet /> */}
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar />
-          <ChatArea />
-          <Composer />
+          <Outlet />
         </div>
 
         {/* Right Panel - Desktop (inline) */}

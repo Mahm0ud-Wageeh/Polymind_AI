@@ -1,9 +1,12 @@
+import { useLocation } from 'react-router'
 import { useStore } from '@/store/useStore'
-import { cn } from '@/lib/utils'
+import { cn, isPathActive } from '@/lib/utils'
+import { modules } from '@/modules/registry'
 import { PanelRightOpen, PanelRightClose, Search, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function TopBar() {
+  const location = useLocation()
   const {
     rightPanelOpen,
     toggleRightPanel,
@@ -14,7 +17,13 @@ export function TopBar() {
     user,
   } = useStore()
 
+  // Resolve a friendly title from the active route: prefer the active
+  // conversation title when on the chat workspace, otherwise the module name
+  // from the registry, falling back to the product banner.
   const activeConv = conversations.find((c) => c.id === activeConversationId)
+  const activeModule = modules.find((m) => isPathActive(location.pathname, m.path))
+  const fallback = activeModule?.name ?? 'Polymind — Network Engineering Workspace'
+  const pageTitle = activeConv?.title ?? fallback
 
   return (
     <header className="h-12 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-2 sm:px-4 shrink-0 z-sticky">
@@ -31,7 +40,7 @@ export function TopBar() {
         </Button>
 
         <h1 className="text-sm sm:text-base font-medium truncate">
-          {activeConv?.title || 'Polymind AI'}
+          {pageTitle}
         </h1>
       </div>
 
@@ -44,7 +53,7 @@ export function TopBar() {
           onClick={() => setCommandPaletteOpen(true)}
           aria-label="Search"
         >
-          <Search className="h-4 w-4" />
+          <Search className="h-3.5 w-3.5" />
         </Button>
 
         <Button

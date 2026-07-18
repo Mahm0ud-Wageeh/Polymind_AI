@@ -26,3 +26,12 @@ export function formatRelativeTime(date: Date): string {
 export function formatTime(date: Date): string {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
+
+/**
+ * Whether a route path is a prefix-match for the current location pathname.
+ * Matches `/designer` for `/designer`, but not `/designer` for `/designer-info`.
+ */
+export function isPathActive(pathname: string, routePath: string): boolean {
+  if (routePath === '/') return pathname === '/'
+  return pathname === routePath || pathname.startsWith(`${routePath}/`)
+}

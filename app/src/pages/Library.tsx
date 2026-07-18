@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { useStore } from '@/store/useStore'
 import { cn } from '@/lib/utils'
@@ -58,7 +59,7 @@ function Icon({ name, className }: { name?: string | null; className?: string })
 type LibraryTab = 'agents' | 'templates' | 'tools'
 
 export function Library() {
-  const setCurrentPage = useStore((s) => s.setCurrentPage)
+  const navigate = useNavigate()
   const createConversation = useStore((s) => s.createConversation)
   const [tab, setTab] = useState<LibraryTab>('agents')
   const [loading, setLoading] = useState(true)
@@ -89,13 +90,13 @@ export function Library() {
     }
   }, [])
 
-  function useAgent(agent: MarketAgent) {
+  function handleUseAgent(agent: MarketAgent) {
     createConversation()
-    setCurrentPage('workspace')
+    navigate('/workspace')
     toast.success(`Started a chat with ${agent.name}`)
   }
 
-  async function useTemplate(t: MarketTemplate) {
+  async function handleUseTemplate(t: MarketTemplate) {
     if (t.prompt) {
       try {
         await navigator.clipboard.writeText(t.prompt)
@@ -104,7 +105,7 @@ export function Library() {
         toast.message(t.prompt)
       }
     }
-    setCurrentPage('workspace')
+    navigate('/workspace')
   }
 
   const tabs: { id: LibraryTab; label: string; icon: typeof Bot }[] = [
@@ -116,7 +117,7 @@ export function Library() {
   return (
     <div className="h-screen flex flex-col bg-background">
       <header className="flex items-center gap-3 px-6 h-16 border-b border-border shrink-0">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentPage('workspace')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/workspace')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
@@ -171,7 +172,7 @@ export function Library() {
                       ) : (
                         <span />
                       )}
-                      <Button size="sm" onClick={() => useAgent(a)}>
+                      <Button size="sm" onClick={() => handleUseAgent(a)}>
                         Chat
                       </Button>
                     </div>
@@ -199,7 +200,7 @@ export function Library() {
                       ) : (
                         <span />
                       )}
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => useTemplate(t)}>
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => handleUseTemplate(t)}>
                         <Copy className="h-3.5 w-3.5" />
                         Use
                       </Button>

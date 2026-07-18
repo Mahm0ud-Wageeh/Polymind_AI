@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router'
 import { useStore } from '@/store/useStore'
 import { Logo } from './Logo'
 import { cn } from '@/lib/utils'
@@ -8,16 +9,12 @@ import {
   MessageSquare,
   Pin,
   FolderOpen,
-  LayoutTemplate,
-  Database,
   Settings,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   MoreHorizontal,
   ChevronsUpDown,
-  Sparkles,
-  LayoutGrid,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -28,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { navModules, NAV_GROUP_LABELS, type NavGroup, type ModuleManifest } from '@/modules/registry'
 
 export function Sidebar() {
   const {
@@ -41,11 +39,10 @@ export function Sidebar() {
     currentWorkspace,
     workspaces,
     user,
-    templates,
-    setCurrentPage,
     setCommandPaletteOpen,
   } = useStore()
 
+  const navigate = useNavigate()
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({})
 
   const toggleProject = (projectId: string) => {
@@ -60,10 +57,17 @@ export function Sidebar() {
   )
   const pinnedConvs = conversations.filter((c) => c.isPinned)
 
+  // Group modules by navGroup for the sidebar nav section.
+  const grouped = navModules().reduce<Record<string, ModuleManifest[]>>((acc, mod) => {
+    ;(acc[mod.navGroup] ??= []).push(mod)
+    return acc
+  }, {})
+  const groupOrder: NavGroup[] = ['manage', 'create', 'system']
+
   if (sidebarCollapsed) {
     return (
       <TooltipProvider delayDuration={300}>
-        <aside className="w-16 border-r border-border bg-background flex flex-col items-center py-3 shrink-0">
+        <aside className="w-16 h-full border-r border-border bg-background flex flex-col items-center py-3 shrink-0 overflow-hidden">
           <div className="mb-4">
             <Logo size="sm" showText={false} />
           </div>
@@ -90,7 +94,7 @@ export function Sidebar() {
                 className="rounded-full mb-2"
                 onClick={() => setCommandPaletteOpen(true)}
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Search</TooltipContent>
@@ -120,8 +124,8 @@ export function Sidebar() {
           <div className="mt-auto flex flex-col items-center gap-1 pt-4 border-t border-border w-full">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setCurrentPage('library')}>
-                  <LayoutGrid className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate('/library')}>
+                  <FolderOpen className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">Library</TooltipContent>
@@ -129,7 +133,7 @@ export function Sidebar() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setCurrentPage('settings')}>
+                <Button variant="ghost" size="icon" className="rounded-full" onClick={() => navigate('/settings')}>
                   <Settings className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -160,7 +164,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[280px] border-r border-border bg-background flex flex-col shrink-0">
+    <aside className="w-[280px] h-full border-r border-border bg-background flex flex-col shrink-0 overflow-hidden">
       {/* Header */}
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between mb-3">
@@ -202,16 +206,55 @@ export function Sidebar() {
           className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-muted/50 rounded-md hover:bg-muted transition-colors"
           onClick={() => setCommandPaletteOpen(true)}
         >
-          <Search className="h-4 w-4" />
-          <span className="flex-1 text-left">Search conversations...</span>
+          <Search className="h-3.5 w-3.5" />
+          <span className="flex-1 text-left">Search...</span>
           <kbd className="text-xs bg-background border border-border rounded px-1.5 py-0.5 font-mono">
             ⌘K
           </kbd>
         </button>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation — modules from the registry */}
       <ScrollArea className="flex-1 px-3">
+        {groupOrder.map((group) => {
+          const items = grouped[group]
+          if (!items || items.length === 0) return null
+          return (
+            <div key={group} className="mb-3">
+              <div className="flex items-center gap-1 px-2 py-1.5">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {NAV_GROUP_LABELS[group]}
+                </span>
+              </div>
+              {items.map((mod) => (
+                <NavLink
+                  key={mod.id}
+                  to={mod.path}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded-md transition-colors',
+                      isActive
+                        ? 'bg-accent text-accent-foreground border-l-2 border-ring'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )
+                  }
+                >
+                  <mod.icon className="h-4 w-4 shrink-0" />
+                  <span className="truncate flex-1 text-left">{mod.name}</span>
+                </NavLink>
+              ))}
+            </div>
+          )
+        })}
+
+        {/* Conversations header */}
+        <div className="border-t border-border pt-2 mb-2">
+          <div className="flex items-center gap-1 px-2 py-1.5">
+            <MessageSquare className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Conversations</span>
+          </div>
+        </div>
+
         {/* Today */}
         {todayConvs.length > 0 && (
           <div className="mb-2">
@@ -309,51 +352,20 @@ export function Sidebar() {
             ))}
           </div>
         )}
-
-        {/* Templates */}
-        <div className="mb-2">
-          <div className="flex items-center gap-1 px-2 py-1.5">
-            <LayoutTemplate className="h-3 w-3 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Templates</span>
-          </div>
-          <div className="grid grid-cols-2 gap-1.5 px-2">
-            {templates.slice(0, 4).map((template) => (
-              <button
-                key={template.id}
-                className="flex flex-col items-center gap-1.5 p-2.5 text-xs text-muted-foreground bg-muted/50 border border-border rounded-md hover:bg-accent hover:border-ring/30 transition-all"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="truncate w-full text-center">{template.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Knowledge Base */}
-        <div className="mb-4">
-          <div className="flex items-center gap-1 px-2 py-1.5">
-            <Database className="h-3 w-3 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Knowledge Base</span>
-          </div>
-          <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-muted-foreground border border-dashed border-border rounded-md hover:bg-muted transition-colors">
-            <Plus className="h-4 w-4" />
-            Upload files
-          </button>
-        </div>
       </ScrollArea>
 
       {/* Footer */}
       <div className="p-3 border-t border-border">
         <button
           className="flex items-center gap-2 w-full px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors mb-1"
-          onClick={() => setCurrentPage('library')}
+          onClick={() => navigate('/library')}
         >
-          <LayoutGrid className="h-4 w-4" />
+          <FolderOpen className="h-4 w-4" />
           Library
         </button>
         <button
           className="flex items-center gap-2 w-full px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors mb-1"
-          onClick={() => setCurrentPage('settings')}
+          onClick={() => navigate('/settings')}
         >
           <Settings className="h-4 w-4" />
           Settings

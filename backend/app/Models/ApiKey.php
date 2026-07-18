@@ -34,7 +34,7 @@ class ApiKey extends Model
      */
     public static function generate(User $user, string $name, array $scopes = []): array
     {
-        $plain = 'pm_' . Str::random(48);
+        $plain = 'pm_'.Str::random(48);
         $model = static::create([
             'user_id' => $user->id,
             'organization_id' => $user->current_workspace_id ? null : null,

@@ -12,13 +12,14 @@ export function setToken(token: string | null): void {
 }
 
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public data?: unknown,
-  ) {
+  status: number
+  data?: unknown
+
+  constructor(message: string, status: number, data?: unknown) {
     super(message)
     this.name = 'ApiError'
+    this.status = status
+    this.data = data
   }
 }
 
@@ -55,6 +56,16 @@ export const api = {
       method: 'POST',
       headers: headers(),
       body: body ? JSON.stringify(body) : undefined,
+    }).then((r) => parse<T>(r)),
+
+  postForm: <T>(path: string, body: FormData): Promise<T> =>
+    fetch(`${env.apiUrl}${path}`, {
+      method: 'POST',
+      headers: (() => {
+        const token = getToken()
+        return { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+      })(),
+      body,
     }).then((r) => parse<T>(r)),
 
   patch: <T>(path: string, body?: unknown): Promise<T> =>

@@ -9,8 +9,9 @@ test('app boots and sets the Polymind title', async ({ page }) => {
   await expect(root).not.toBeEmpty()
 })
 
-test('the message composer is reachable', async ({ page }) => {
+test('unauthenticated users are redirected to sign in', async ({ page }) => {
   await page.goto('/')
 
-  await expect(page.getByPlaceholder(/Message Polymind/i)).toBeVisible()
+  await expect(page).toHaveURL(/\/auth$/)
+  await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible()
 })

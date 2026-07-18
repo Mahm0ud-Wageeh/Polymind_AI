@@ -2,8 +2,15 @@ import { api, setToken } from '@/lib/api'
 import type { User } from '@/types'
 
 interface AuthResponse {
-  user: User & { current_workspace_id?: string }
+  user: Omit<User, 'role'> & { current_workspace_id?: string }
   token: string
+}
+
+function normalizeUser(user: AuthResponse['user'], roles: string[] = []): User {
+  return {
+    ...user,
+    role: roles[0] ?? 'member',
+  }
 }
 
 function persist(res: AuthResponse): User {
@@ -11,7 +18,7 @@ function persist(res: AuthResponse): User {
   if (res.user.current_workspace_id) {
     localStorage.setItem('polymind.workspace', res.user.current_workspace_id)
   }
-  return res.user
+  return normalizeUser(res.user)
 }
 
 /**
@@ -32,8 +39,13 @@ export const authService = {
   },
 
   async me(): Promise<User> {
-    const { user } = await api.get<{ user: User }>('/auth/me')
-    return user
+    const { user, roles } = await api.get<{ user: AuthResponse['user']; roles?: string[] }>('/auth/me')
+    return normalizeUser(user, roles)
+  },
+
+  async updateProfile(input: Pick<User, 'name'>): Promise<User> {
+    const { user, roles } = await api.patch<{ user: AuthResponse['user']; roles?: string[] }>('/auth/me', input)
+    return normalizeUser(user, roles)
   },
 
   async logout(): Promise<void> {
@@ -44,5 +56,10 @@ export const authService = {
       localStorage.removeItem('polymind.workspace')
       localStorage.removeItem('polymind.conversation')
     }
+  },
+
+  async oauthRedirect(provider: 'google' | 'github'): Promise<string> {
+    const { url } = await api.get<{ url: string }>(`/auth/oauth/${provider}/redirect`)
+    return url
   },
 }

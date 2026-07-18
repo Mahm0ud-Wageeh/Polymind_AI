@@ -5,8 +5,6 @@ import type { Attachment } from '@/types'
 import {
   Paperclip,
   Image,
-  Mic,
-  Sparkles,
   ArrowUp,
   Code,
   Table,
@@ -16,13 +14,15 @@ import {
   FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { fileService } from '@/services/files/fileService'
+import { toast } from 'sonner'
 
 const slashCommands = [
-  { icon: Code, name: 'code', description: 'Generate code snippet', shortcut: '/code' },
-  { icon: Image, name: 'image', description: 'Generate an image', shortcut: '/image' },
-  { icon: Table, name: 'table', description: 'Create a table', shortcut: '/table' },
-  { icon: FileSearch, name: 'summarize', description: 'Summarize text', shortcut: '/summarize' },
-  { icon: BarChart3, name: 'analyze', description: 'Analyze data', shortcut: '/analyze' },
+  { icon: Code, name: 'config', description: 'Generate a device config', shortcut: '/config' },
+  { icon: Image, name: 'diagram', description: 'Generate a topology diagram', shortcut: '/diagram' },
+  { icon: Table, name: 'plan', description: 'Create a VLAN/IP plan', shortcut: '/plan' },
+  { icon: FileSearch, name: 'analyze', description: 'Analyze a config or capture', shortcut: '/analyze' },
+  { icon: BarChart3, name: 'subnet', description: 'Subnet a network range', shortcut: '/subnet' },
 ]
 
 function formatBytes(bytes: number): string {
@@ -35,7 +35,6 @@ export function Composer() {
   const [input, setInput] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [showSlashMenu, setShowSlashMenu] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -54,6 +53,7 @@ export function Composer() {
       type: file.type || 'file',
       size: formatBytes(file.size),
       url: URL.createObjectURL(file),
+      file,
     }))
     setAttachments((prev) => [...prev, ...next])
   }, [])
@@ -62,11 +62,27 @@ export function Composer() {
     setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const trimmed = input.trim()
     if (!trimmed && attachments.length === 0) return
 
-    void sendMessage(trimmed, attachments.length ? attachments : undefined)
+    try {
+      const workspaceId = localStorage.getItem('polymind.workspace')
+      const conversationId = localStorage.getItem('polymind.conversation') ?? undefined
+      if (workspaceId) {
+        const uploaded = await Promise.all(
+          attachments.filter((attachment) => attachment.file).map((attachment) =>
+            fileService.upload(attachment.file!, workspaceId, conversationId),
+          ),
+        )
+        await sendMessage(trimmed, attachments.length ? attachments : undefined, uploaded.map((file) => file.id))
+      } else {
+        await sendMessage(trimmed, attachments.length ? attachments : undefined)
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to send your message. Please try again.')
+      return
+    }
     setInput('')
     setAttachments([])
     setShowSlashMenu(false)
@@ -185,7 +201,7 @@ export function Composer() {
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Message Polymind..."
+            placeholder="Describe a network to design…"
             className="w-full bg-transparent border-0 resize-none outline-none text-base leading-relaxed placeholder:text-muted-foreground min-h-[24px] max-h-[200px]"
             rows={1}
           />
@@ -234,26 +250,6 @@ export function Composer() {
               aria-label="Attach image"
             >
               <Image className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                'h-8 w-8',
-                isRecording ? 'text-destructive' : 'text-muted-foreground hover:text-foreground'
-              )}
-              onClick={() => setIsRecording(!isRecording)}
-              aria-label="Voice input"
-            >
-              <Mic className={cn('h-4 w-4', isRecording && 'animate-pulse')} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              aria-label="Enhance prompt"
-            >
-              <Sparkles className="h-4 w-4" />
             </Button>
           </div>
 

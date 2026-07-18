@@ -1,8 +1,14 @@
-# Polymind — AI Workspace
+# Polymind — AI Network Engineering Workspace
 
-A production-ready, full-stack **AI workspace SaaS**: a polished React frontend and a
-Laravel 12 API with multi-provider AI, streaming chat, RBAC, usage metering, billing,
-an agents/templates library, and a tools/MCP registry.
+A production-ready, full-stack **AI platform built for Network Engineers** — design,
+automate, document, analyze, troubleshoot, and manage IT infrastructure with AI.
+Version 1 focuses on Network Engineering, with an extensible module architecture
+prepared for future engineering domains (Cloud, DevOps, Cybersecurity, and more)
+without rewrites.
+
+Built on a polished React frontend and a Laravel 12 API with multi-provider AI,
+streaming chat, RBAC, usage metering, billing, an agents/templates library, and a
+tools/MCP registry.
 
 > Demo login: **demo@polymind.ai** / **password**
 
@@ -49,14 +55,18 @@ an agents/templates library, and a tools/MCP registry.
 ├── app/                 # React + Vite frontend
 │   ├── src/
 │   │   ├── components/   # UI, shell, chat, panels, command palette
-│   │   ├── pages/        # Auth, Onboarding, Settings, Library
-│   │   ├── services/     # api clients: auth, chat, billing, library
-│   │   ├── store/        # Zustand store
+│   │   ├── modules/      # domain modules + the module registry (extensible)
+│   │   │   ├── registry.ts
+│   │   │   ├── components/  # ModuleComingSoon, shared module UI
+│   │   │   └── networking/  # Networking v1 modules: pages + services
+│   │   ├── pages/        # Auth, Onboarding, Settings
+│   │   ├── services/     # api clients: auth, chat, billing, library, networking
+│   │   ├── store/        # Zustand store (UI state; routing is via React Router)
 │   │   └── lib/          # api wrapper, utils, design tokens
 │   └── e2e/              # Playwright specs
 ├── backend/             # Laravel 12 API
 │   ├── app/Http/Controllers/Api/V1/
-│   ├── app/Services/     # AI, Billing, Tenancy
+│   ├── app/Services/     # AI, Billing, Tenancy, Networking
 │   ├── config/           # ai.php, billing.php, tools.php, services.php
 │   ├── database/         # migrations + seeders
 │   └── tests/            # Feature + Unit

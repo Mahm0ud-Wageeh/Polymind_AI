@@ -10,12 +10,13 @@ export function ChatArea() {
 
   const activeConv = conversations.find((c) => c.id === activeConversationId)
   const messages = activeConv?.messages || []
+  const lastMessageContent = messages[messages.length - 1]?.content
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [messages.length, messages[messages.length - 1]?.content])
+  }, [messages.length, lastMessageContent])
 
   if (!activeConv || messages.length === 0) {
     return (

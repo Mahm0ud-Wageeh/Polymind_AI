@@ -1,28 +1,56 @@
 import { useState } from 'react'
-import { useStore } from '@/store/useStore'
+import { useNavigate } from 'react-router'
 import { Logo } from '@/components/shell/Logo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff, Chrome } from 'lucide-react'
+import { authService } from '@/services/auth/authService'
+import { useStore } from '@/store/useStore'
 
 export function Auth() {
-  const { setCurrentPage } = useStore()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [name, setName] = useState('')
+  const setUser = useStore((state) => state.setUser)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
-    setTimeout(() => {
+    try {
+      const user = isRegistering
+        ? await authService.register({
+            name: name.trim(),
+            email,
+            password,
+            password_confirmation: password,
+          })
+        : await authService.login({ email, password })
+      setUser(user)
+      navigate('/workspace')
+    } catch (err) {
+      setError((err as Error).message || 'Unable to sign in. Please try again.')
+    } finally {
       setIsLoading(false)
-      setCurrentPage('workspace')
-    }, 1500)
+    }
+  }
+
+  const handleGoogle = async () => {
+    setError('')
+    setIsLoading(true)
+    try {
+      window.location.assign(await authService.oauthRedirect('google'))
+    } catch (err) {
+      setError((err as Error).message || 'Unable to start Google sign-in.')
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -61,10 +89,23 @@ export function Auth() {
             <Logo size="md" />
           </div>
 
-          <h1 className="text-3xl font-semibold mb-2">Welcome back</h1>
-          <p className="text-muted-foreground mb-8">Sign in to your AI workspace</p>
+          <h1 className="text-3xl font-semibold mb-2">{isRegistering ? 'Create your account' : 'Welcome back'}</h1>
+          <p className="text-muted-foreground mb-8">{isRegistering ? 'Start your AI workspace' : 'Sign in to your AI workspace'}</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isRegistering && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-11"
+                  required
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -75,6 +116,7 @@ export function Auth() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-11"
                 required
+                minLength={isRegistering ? 8 : undefined}
               />
             </div>
 
@@ -112,7 +154,7 @@ export function Auth() {
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
-                'Sign In'
+                isRegistering ? 'Create Account' : 'Sign In'
               )}
             </Button>
           </form>
@@ -126,15 +168,22 @@ export function Auth() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full h-11 gap-2">
+          <Button variant="outline" className="w-full h-11 gap-2" onClick={handleGoogle} disabled={isLoading}>
             <Chrome className="h-4 w-4" />
             Continue with Google
           </Button>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <button className="text-ring hover:underline font-medium">
-              Sign up
+            {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              type="button"
+              className="text-ring hover:underline font-medium"
+              onClick={() => {
+                setIsRegistering((value) => !value)
+                setError('')
+              }}
+            >
+              {isRegistering ? 'Sign in' : 'Sign up'}
             </button>
           </p>
         </div>

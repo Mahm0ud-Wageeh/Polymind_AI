@@ -17,6 +17,7 @@ export interface Attachment {
   type: string;
   size: string;
   url?: string;
+  file?: File;
 }
 
 export interface Conversation {

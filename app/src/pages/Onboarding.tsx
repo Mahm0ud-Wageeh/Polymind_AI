@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 import { useStore } from '@/store/useStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +35,7 @@ const models = [
 ]
 
 export function Onboarding() {
+  const navigate = useNavigate()
   const { completeOnboarding, setTheme } = useStore()
   const [step, setStep] = useState(1)
   const [workspaceName, setWorkspaceName] = useState('')
@@ -47,6 +49,7 @@ export function Onboarding() {
     } else {
       setTheme(selectedTheme as 'light' | 'dark' | 'system')
       completeOnboarding()
+      navigate('/workspace')
     }
   }
 

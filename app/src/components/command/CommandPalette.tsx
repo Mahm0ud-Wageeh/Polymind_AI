@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router'
 import { useStore } from '@/store/useStore'
 import { cn } from '@/lib/utils'
+import { modules } from '@/modules/registry'
 import {
   Search,
   MessageSquare,
   Settings,
   Plus,
   User,
-  ArrowUpRight,
 } from 'lucide-react'
 
 interface CommandItem {
@@ -26,10 +27,10 @@ export function CommandPalette() {
     conversations,
     setActiveConversation,
     createConversation,
-    setCurrentPage,
     toggleCommandPalette,
   } = useStore()
 
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -46,7 +47,7 @@ export function CommandPalette() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [setCommandPaletteOpen, toggleCommandPalette])
 
   useEffect(() => {
     if (commandPaletteOpen) {
@@ -55,7 +56,7 @@ export function CommandPalette() {
       setSearch('')
       setSelectedIndex(0)
     }
-  }, [commandPaletteOpen])
+  }, [commandPaletteOpen, setCommandPaletteOpen, toggleCommandPalette])
 
   const commands: CommandItem[] = [
     // Recent Conversations
@@ -70,6 +71,18 @@ export function CommandPalette() {
       group: 'Recent Conversations',
     })),
 
+    // Module navigation — generated from the registry
+    ...modules.map((mod) => ({
+      id: `nav-${mod.id}`,
+      name: mod.name,
+      icon: mod.icon,
+      action: () => {
+        navigate(mod.path)
+        setCommandPaletteOpen(false)
+      },
+      group: 'Navigation',
+    })),
+
     // Actions
     {
       id: 'new-chat',
@@ -78,6 +91,7 @@ export function CommandPalette() {
       shortcut: '⌘N',
       action: () => {
         createConversation()
+        navigate('/workspace')
         setCommandPaletteOpen(false)
       },
       group: 'Actions',
@@ -88,7 +102,7 @@ export function CommandPalette() {
       icon: Settings,
       shortcut: '⌘,',
       action: () => {
-        setCurrentPage('settings')
+        navigate('/settings')
         setCommandPaletteOpen(false)
       },
       group: 'Actions',
@@ -98,22 +112,10 @@ export function CommandPalette() {
       name: 'Profile',
       icon: User,
       action: () => {
-        setCurrentPage('settings')
+        navigate('/settings')
         setCommandPaletteOpen(false)
       },
       group: 'Actions',
-    },
-
-    // Navigation
-    {
-      id: 'nav-workspace',
-      name: 'Go to Workspace',
-      icon: ArrowUpRight,
-      action: () => {
-        setCurrentPage('workspace')
-        setCommandPaletteOpen(false)
-      },
-      group: 'Navigation',
     },
   ]
 
@@ -171,7 +173,7 @@ export function CommandPalette() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search commands, conversations, or files..."
+            placeholder="Search commands, pages, conversations..."
             className="flex-1 h-14 bg-transparent outline-none text-base placeholder:text-muted-foreground"
           />
           <kbd

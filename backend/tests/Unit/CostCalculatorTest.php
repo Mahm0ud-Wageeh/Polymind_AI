@@ -24,8 +24,8 @@ class CostCalculatorTest extends TestCase
     {
         config(['ai.pricing.test-model' => ['input' => 10.0, 'output' => 30.0]]);
 
-        // 500k input @ $10/1M = $0.005 ; 250k output @ $30/1M = $0.0075
-        $this->assertSame(0.0125, CostCalculator::estimate('test-model', 500_000, 250_000));
+        // 500k input @ $10/1M = $5.00 ; 250k output @ $30/1M = $7.50
+        $this->assertSame(12.5, CostCalculator::estimate('test-model', 500_000, 250_000));
     }
 
     public function test_approx_tokens_uses_roughly_four_chars_per_token(): void

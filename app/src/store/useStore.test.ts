@@ -40,6 +40,12 @@ describe('useStore preferences + profile', () => {
   })
 
   it('updateUserProfile patches the signed-in user', () => {
+    useStore.getState().setUser({
+      id: 'user-1',
+      name: 'Original Name',
+      email: 'user@example.com',
+      role: 'member',
+    })
     useStore.getState().updateUserProfile({ name: 'New Name' })
     expect(useStore.getState().user?.name).toBe('New Name')
   })

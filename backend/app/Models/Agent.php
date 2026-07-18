@@ -16,7 +16,7 @@ class Agent extends Model
 
     protected $fillable = [
         'workspace_id', 'user_id', 'name', 'icon', 'description', 'system_prompt',
-        'provider', 'model', 'temperature', 'tools', 'memory', 'is_public',
+        'provider', 'model', 'temperature', 'tools', 'memory', 'is_public', 'domain',
     ];
 
     protected function casts(): array

@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\File;
 use App\Models\Message;
 use App\Models\UsageRecord;
+use App\Models\Workspace;
 use App\Services\AI\AiManager;
 use App\Services\AI\Data\ChatRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ChatController extends Controller
@@ -95,15 +98,25 @@ class ChatController extends Controller
             'content' => ['required', 'string'],
             'provider' => ['nullable', 'string'],
             'model' => ['nullable', 'string'],
+            'file_ids' => ['nullable', 'array'],
+            'file_ids.*' => ['uuid'],
         ]);
 
         $user = $request->user();
+
+        if (isset($data['workspace_id'])) {
+            $workspace = Workspace::findOrFail($data['workspace_id']);
+            abort_unless(
+                $user->organizations()->where('organizations.id', $workspace->organization_id)->exists(),
+                403,
+            );
+        }
 
         $conversation = isset($data['conversation_id'])
             ? $user->conversations()->findOrFail($data['conversation_id'])
             : $user->conversations()->create([
                 'workspace_id' => $data['workspace_id'],
-                'title' => \Illuminate\Support\Str::limit($data['content'], 40),
+                'title' => Str::limit($data['content'], 40),
                 'provider' => $data['provider'] ?? config('ai.default'),
                 'model' => $data['model'] ?? config('ai.default_model'),
             ]);
@@ -112,6 +125,18 @@ class ChatController extends Controller
             'role' => 'user',
             'content' => $data['content'],
         ]);
+
+        if (! empty($data['file_ids'])) {
+            $files = File::query()
+                ->where('user_id', $user->id)
+                ->whereIn('id', $data['file_ids'])
+                ->get();
+            abort_unless($files->count() === count($data['file_ids']), 422, 'One or more uploaded files are unavailable.');
+            File::whereIn('id', $files->pluck('id'))->update([
+                'conversation_id' => $conversation->id,
+                'message_id' => $userMessage->id,
+            ]);
+        }
 
         $history = $conversation->messages()
             ->whereIn('role', ['user', 'assistant'])
@@ -149,8 +174,8 @@ class ChatController extends Controller
      */
     protected function sse(string $event, array $data): void
     {
-        echo 'event: ' . $event . "\n";
-        echo 'data: ' . json_encode($data) . "\n\n";
+        echo 'event: '.$event."\n";
+        echo 'data: '.json_encode($data)."\n\n";
         if (function_exists('ob_flush')) {
             @ob_flush();
         }

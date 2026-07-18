@@ -1,16 +1,19 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\OAuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
-use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\BillingWebhookController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\FileController;
+use App\Http\Controllers\Api\V1\CiscoCliController;
+use App\Http\Controllers\Api\V1\TroubleshootController;
 use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\NetworkDesignController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ProviderController;
 use App\Http\Controllers\Api\V1\TemplateController;
@@ -45,6 +48,7 @@ Route::prefix('v1')->group(function () {
     // ----- Authenticated ---------------------------------------------
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
+        Route::patch('auth/me', [AuthController::class, 'updateProfile']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/email/verify', [AuthController::class, 'verifyEmail']);
 
@@ -52,10 +56,18 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('projects', ProjectController::class);
         Route::apiResource('conversations', ConversationController::class);
         Route::apiResource('conversations.messages', MessageController::class)
-            ->only(['index', 'store', 'destroy']);
+            ->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('agents', AgentController::class);
         Route::apiResource('templates', TemplateController::class);
         Route::apiResource('files', FileController::class)->only(['index', 'store', 'show', 'destroy']);
+
+        // Network designs: CRUD + AI generation.
+        Route::apiResource('network-designs', NetworkDesignController::class);
+        Route::post('network-designs/generate', [NetworkDesignController::class, 'generate']);
+
+        // Tools
+        Route::post('tools/cisco-cli/generate', [CiscoCliController::class, 'generate']);
+        Route::post('tools/troubleshoot/analyze', [TroubleshootController::class, 'analyze']);
 
         // Chat: streamed completion (SSE) + regenerate.
         Route::post('chat/stream', [ChatController::class, 'stream']);

@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Http;
 /**
  * Driver for Google Gemini's generateContent API. Roles are mapped to Gemini's
  * "user"/"model" convention and the system prompt uses system_instruction.
+ *
+ * Structured output uses Gemini's native responseMimeType + responseSchema,
+ * which is the cleanest implementation among the three providers.
  */
 class GeminiProvider implements AiProvider
 {
@@ -48,15 +51,7 @@ class GeminiProvider implements AiProvider
         $tokensInput = (int) ($usage['promptTokenCount'] ?? 0);
         $tokensOutput = (int) ($usage['candidatesTokenCount'] ?? 0);
 
-        return new ChatResponse(
-            content: $content,
-            provider: $this->name,
-            model: $request->model,
-            tokensInput: $tokensInput,
-            tokensOutput: $tokensOutput,
-            cost: CostCalculator::estimate($request->model, $tokensInput, $tokensOutput),
-            finishReason: $response['candidates'][0]['finishReason'] ?? null,
-        );
+        return $this->makeResponse($request, $content, $tokensInput, $tokensOutput, $response['candidates'][0]['finishReason'] ?? null);
     }
 
     public function stream(ChatRequest $request, Closure $onChunk): ChatResponse
@@ -71,6 +66,36 @@ class GeminiProvider implements AiProvider
     }
 
     /**
+     * Parse structured JSON when the request asked for structured output.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function parseStructured(ChatRequest $request, string $content): ?array
+    {
+        if (! $request->wantsStructured()) {
+            return null;
+        }
+
+        $decoded = json_decode($content, true);
+
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    protected function makeResponse(ChatRequest $request, string $content, int $tokensInput, int $tokensOutput, ?string $finish): ChatResponse
+    {
+        return new ChatResponse(
+            content: $content,
+            provider: $this->name,
+            model: $request->model,
+            tokensInput: $tokensInput,
+            tokensOutput: $tokensOutput,
+            cost: CostCalculator::estimate($request->model, $tokensInput, $tokensOutput),
+            finishReason: $finish,
+            structured: $this->parseStructured($request, $content),
+        );
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function payload(ChatRequest $request): array
@@ -80,9 +105,18 @@ class GeminiProvider implements AiProvider
             'parts' => [['text' => $m['content']]],
         ], $request->messages);
 
+        $generationConfig = ['temperature' => $request->temperature];
+
+        if ($request->wantsStructured()) {
+            $generationConfig['responseMimeType'] = 'application/json';
+            if ($request->jsonSchema) {
+                $generationConfig['responseSchema'] = $request->jsonSchema;
+            }
+        }
+
         $payload = [
             'contents' => $contents,
-            'generationConfig' => ['temperature' => $request->temperature],
+            'generationConfig' => $generationConfig,
         ];
 
         if ($request->systemPrompt) {

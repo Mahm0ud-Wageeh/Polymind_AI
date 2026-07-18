@@ -48,6 +48,24 @@ class OpenAiCompatibleProvider implements AiProvider
         return $this->makeResponse($request, $content, $usage, $response['choices'][0]['finish_reason'] ?? null);
     }
 
+    /**
+     * Parse structured JSON content from a chat response when the request
+     * asked for JSON output. Returns null when parsing fails or the request
+     * didn't ask for structured output.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function parseStructured(ChatRequest $request, string $content): ?array
+    {
+        if (! $request->wantsStructured()) {
+            return null;
+        }
+
+        $decoded = json_decode($content, true);
+
+        return is_array($decoded) ? $decoded : null;
+    }
+
     public function stream(ChatRequest $request, Closure $onChunk): ChatResponse
     {
         $buffer = '';
@@ -57,7 +75,7 @@ class OpenAiCompatibleProvider implements AiProvider
             ->post('/chat/completions', $this->payload($request, stream: true));
 
         if (! $response->successful()) {
-            throw new RuntimeException("AI provider [{$this->name}] stream failed: " . $response->status());
+            throw new RuntimeException("AI provider [{$this->name}] stream failed: ".$response->status());
         }
 
         $body = $response->toPsrResponse()->getBody();
@@ -102,6 +120,7 @@ class OpenAiCompatibleProvider implements AiProvider
             tokensOutput: $tokensOutput,
             cost: CostCalculator::estimate($request->model, $tokensInput, $tokensOutput),
             finishReason: $finish,
+            structured: $this->parseStructured($request, $content),
         );
     }
 
@@ -110,13 +129,30 @@ class OpenAiCompatibleProvider implements AiProvider
      */
     protected function payload(ChatRequest $request, bool $stream): array
     {
-        return array_filter([
+        $payload = array_filter([
             'model' => $request->model,
             'messages' => $request->withSystem(),
             'temperature' => $request->temperature,
             'max_tokens' => $request->maxTokens,
             'stream' => $stream,
         ], fn ($v) => $v !== null);
+
+        if ($request->wantsStructured()) {
+            if ($request->jsonSchema) {
+                $payload['response_format'] = [
+                    'type' => 'json_schema',
+                    'json_schema' => [
+                        'name' => 'structured_output',
+                        'schema' => $request->jsonSchema,
+                        'strict' => true,
+                    ],
+                ];
+            } else {
+                $payload['response_format'] = ['type' => 'json_object'];
+            }
+        }
+
+        return $payload;
     }
 
     protected function client()

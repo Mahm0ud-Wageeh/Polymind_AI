@@ -2,12 +2,10 @@ import { create } from 'zustand'
 import type { Conversation, Message, Project, Artifact, ProgressStep, ActivityItem, Workspace, User, Theme, PanelTab, Template, Attachment, Preferences } from '@/types'
 import { generateId } from '@/lib/utils'
 import { chatService } from '@/services/chat/chatService'
+import { api, getToken } from '@/lib/api'
+import { authService } from '@/services/auth/authService'
 
 interface AppState {
-  // Navigation
-  currentPage: 'auth' | 'onboarding' | 'workspace' | 'settings' | 'library'
-  setCurrentPage: (page: 'auth' | 'onboarding' | 'workspace' | 'settings' | 'library') => void
-
   // Theme
   theme: Theme
   setTheme: (theme: Theme) => void
@@ -30,13 +28,13 @@ interface AppState {
   // Conversations
   conversations: Conversation[]
   activeConversationId: string | null
-  setActiveConversation: (id: string | null) => void
-  createConversation: () => void
+  setActiveConversation: (id: string | null) => Promise<void>
+  createConversation: () => Promise<void>
   addMessage: (message: Message) => void
   updateMessage: (id: string, updates: Partial<Message>) => void
   appendMessage: (conversationId: string, message: Message) => void
   setMessages: (conversationId: string, updater: (messages: Message[]) => Message[]) => void
-  sendMessage: (content: string, attachments?: Attachment[]) => Promise<void>
+  sendMessage: (content: string, attachments?: Attachment[], fileIds?: string[]) => Promise<void>
   deleteMessage: (messageId: string) => void
   toggleReaction: (messageId: string, reaction: 'up' | 'down') => void
   regenerateResponse: () => Promise<void>
@@ -53,6 +51,7 @@ interface AppState {
   // User
   user: User | null
   setUser: (user: User | null) => void
+  hydrate: () => Promise<void>
   updateUserProfile: (patch: Partial<User>) => void
 
   // Preferences
@@ -106,7 +105,7 @@ const mockConversations: Conversation[] = [
       {
         id: 'm2',
         role: 'assistant',
-        content: `Here\'s a comprehensive React component architecture for a dashboard application:
+        content: `Here's a comprehensive React component architecture for a dashboard application:
 
 ## Core Structure
 
@@ -217,35 +216,10 @@ const mockProjects: Project[] = [
   },
 ]
 
-const mockTemplates: Template[] = [
-  { id: 't1', name: 'Code Review', icon: 'code', description: 'Review code for quality and bugs' },
-  { id: 't2', name: 'Debug Helper', icon: 'bug', description: 'Debug errors and find solutions' },
-  { id: 't3', name: 'Explain Code', icon: 'book-open', description: 'Explain what code does' },
-  { id: 't4', name: 'Refactor', icon: 'refresh-cw', description: 'Refactor and improve code' },
-  { id: 't5', name: 'Write Tests', icon: 'check-circle', description: 'Generate unit tests' },
-  { id: 't6', name: 'Documentation', icon: 'file-text', description: 'Write documentation' },
-]
-
-const mockArtifacts: Artifact[] = [
-  { id: 'a1', name: 'Dashboard.tsx', type: 'code', language: 'tsx', size: '3.2 KB' },
-  { id: 'a2', name: 'api-client.ts', type: 'code', language: 'typescript', size: '1.8 KB' },
-  { id: 'a3', name: 'schema.sql', type: 'code', language: 'sql', size: '2.1 KB' },
-  { id: 'a4', name: 'architecture.md', type: 'document', size: '4.5 KB', preview: 'System architecture overview...' },
-]
-
-const mockProgressSteps: ProgressStep[] = [
-  { id: 'ps1', name: 'Analyzing request', status: 'success', timestamp: new Date(Date.now() - 1000 * 60 * 5) },
-  { id: 'ps2', name: 'Generating response', status: 'success', timestamp: new Date(Date.now() - 1000 * 60 * 4) },
-  { id: 'ps3', name: 'Formatting code blocks', status: 'success', timestamp: new Date(Date.now() - 1000 * 60 * 3) },
-  { id: 'ps4', name: 'Creating artifacts', status: 'running', timestamp: new Date(Date.now() - 1000 * 60 * 2) },
-]
-
-const mockActivityItems: ActivityItem[] = [
-  { id: 'ac1', description: 'Generated 3 code blocks', timestamp: new Date(Date.now() - 1000 * 60 * 2), icon: 'code' },
-  { id: 'ac2', description: 'Analyzed dataset.csv', timestamp: new Date(Date.now() - 1000 * 60 * 5), icon: 'file' },
-  { id: 'ac3', description: 'Created summary.md', timestamp: new Date(Date.now() - 1000 * 60 * 10), icon: 'file-text' },
-  { id: 'ac4', description: 'Refactored api-client.ts', timestamp: new Date(Date.now() - 1000 * 60 * 15), icon: 'refresh-cw' },
-]
+// Kept temporarily for a backwards-compatible persisted-state migration. They
+// are no longer inserted into the running application state.
+void mockConversations
+void mockProjects
 
 const PREFS_KEY = 'polymind:preferences'
 const THEME_KEY = 'polymind:theme'
@@ -305,10 +279,6 @@ function loadTheme(): Theme {
 }
 
 export const useStore = create<AppState>((set, get) => ({
-  // Navigation
-  currentPage: 'workspace',
-  setCurrentPage: (page) => set({ currentPage: page }),
-
   // Theme
   theme: loadTheme(),
   setTheme: (theme) => {
@@ -366,20 +336,34 @@ export const useStore = create<AppState>((set, get) => ({
   setActivePanelTab: (tab) => set({ activePanelTab: tab }),
 
   // Conversations
-  conversations: mockConversations,
-  activeConversationId: '1',
-  setActiveConversation: (id) => set({ activeConversationId: id }),
-  createConversation: () => {
-    const newConv: Conversation = {
-      id: generateId(),
-      title: 'New Conversation',
-      timestamp: new Date(),
-      messages: [],
+  conversations: [],
+  activeConversationId: null,
+  setActiveConversation: async (id) => {
+    if (!id) {
+      set({ activeConversationId: null })
+      localStorage.removeItem('polymind.conversation')
+      return
     }
-    set((state) => ({
-      conversations: [newConv, ...state.conversations],
-      activeConversationId: newConv.id,
+    const response = await api.get<{ id: string; title: string; last_message_at?: string; messages?: Array<{ id: string; role: Message['role']; content: string; created_at: string }> }>(`/conversations/${id}`)
+    const messages = (response.messages ?? []).map((message) => ({
+      id: message.id,
+      role: message.role,
+      content: message.content,
+      timestamp: new Date(message.created_at),
     }))
+    set((state) => ({
+      activeConversationId: id,
+      conversations: state.conversations.map((conversation) => conversation.id === id ? { ...conversation, messages } : conversation),
+    }))
+    localStorage.setItem('polymind.conversation', id)
+  },
+  createConversation: async () => {
+    const workspaceId = get().currentWorkspace.id || localStorage.getItem('polymind.workspace')
+    if (!workspaceId) throw new Error('No workspace selected.')
+    const created = await api.post<{ id: string; title: string; created_at: string }>('/conversations', { workspace_id: workspaceId, title: 'New chat' })
+    const newConv: Conversation = { id: created.id, title: created.title, timestamp: new Date(created.created_at), messages: [] }
+    set((state) => ({ conversations: [newConv, ...state.conversations], activeConversationId: newConv.id }))
+    localStorage.setItem('polymind.conversation', newConv.id)
   },
   addMessage: (message) => {
     const state = get()
@@ -426,7 +410,7 @@ export const useStore = create<AppState>((set, get) => ({
           : conv
       ),
     })),
-  sendMessage: async (content, attachments) => {
+  sendMessage: async (content, attachments, fileIds) => {
     const trimmed = content.trim()
     if (!trimmed && (!attachments || attachments.length === 0)) return
     const { activeConversationId, conversations, appendMessage, setMessages } = get()
@@ -434,17 +418,8 @@ export const useStore = create<AppState>((set, get) => ({
     const activeConv = conversations.find((c) => c.id === conversationId)
     const title = trimmed.slice(0, 40) + (trimmed.length > 40 ? '…' : '')
     if (!activeConv) {
-      const created: Conversation = {
-        id: generateId(),
-        title,
-        timestamp: new Date(),
-        messages: [],
-      }
-      set((state) => ({
-        conversations: [created, ...state.conversations],
-        activeConversationId: created.id,
-      }))
-      conversationId = created.id
+      await get().createConversation()
+      conversationId = get().activeConversationId
     } else if (activeConv.messages.length === 0) {
       set((state) => ({
         conversations: state.conversations.map((conv) =>
@@ -466,7 +441,7 @@ export const useStore = create<AppState>((set, get) => ({
     appendMessage(conversationId, thinking)
     const history =
       get().conversations.find((c) => c.id === conversationId)?.messages ?? []
-    const reply = await chatService.getAssistantReply({ content: trimmed, history })
+    const reply = await chatService.getAssistantReply({ content: trimmed, history, fileIds })
     setMessages(conversationId, (messages) =>
       messages.filter((m) => m.id !== thinking.id).concat(reply)
     )
@@ -543,39 +518,59 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   // Projects
-  projects: mockProjects,
+  projects: [],
 
   // Workspace
-  currentWorkspace: { id: 'w1', name: 'Personal Workspace' },
+  currentWorkspace: { id: '', name: '' },
   updateWorkspace: (patch) =>
     set((state) => ({ currentWorkspace: { ...state.currentWorkspace, ...patch } })),
-  workspaces: [
-    { id: 'w1', name: 'Personal Workspace' },
-    { id: 'w2', name: 'Team Workspace' },
-  ],
+  workspaces: [],
 
   // User
-  user: {
-    id: 'u1',
-    name: 'Alex Chen',
-    email: 'alex@polymind.ai',
-    role: 'Admin',
-  },
+  user: null,
   setUser: (user) => set({ user }),
+  hydrate: async () => {
+    if (!getToken()) return
+    const [user, workspaces, conversationResponse, projectResponse] = await Promise.all([
+      authService.me(),
+      api.get<Array<{ id: string; name: string }>>('/workspaces'),
+      api.get<{ data?: Array<{ id: string; title: string; last_message_at?: string; is_pinned?: boolean; project_id?: string }> } | Array<{ id: string; title: string; last_message_at?: string; is_pinned?: boolean; project_id?: string }>>('/conversations'),
+      api.get<Array<{ id: string; name: string }>>(`/projects?workspace_id=${encodeURIComponent(localStorage.getItem('polymind.workspace') ?? '')}`),
+    ])
+    const rawConversations = Array.isArray(conversationResponse) ? conversationResponse : conversationResponse.data ?? []
+    const conversations = rawConversations.map((conversation) => ({
+      id: conversation.id,
+      title: conversation.title,
+      timestamp: conversation.last_message_at ? new Date(conversation.last_message_at) : new Date(),
+      isPinned: conversation.is_pinned,
+      projectId: conversation.project_id,
+      messages: [],
+    }))
+    const selectedWorkspace = workspaces.find((workspace) => workspace.id === localStorage.getItem('polymind.workspace')) ?? workspaces[0]
+    if (selectedWorkspace) localStorage.setItem('polymind.workspace', selectedWorkspace.id)
+    set({
+      user,
+      workspaces,
+      currentWorkspace: selectedWorkspace ?? { id: '', name: '' },
+      conversations,
+      projects: projectResponse.map((project) => ({ id: project.id, name: project.name, conversations: [] })),
+      activeConversationId: null,
+    })
+  },
   updateUserProfile: (patch) =>
     set((state) => ({ user: state.user ? { ...state.user, ...patch } : state.user })),
 
   // Artifacts
-  artifacts: mockArtifacts,
+  artifacts: [],
 
   // Progress
-  progressSteps: mockProgressSteps,
+  progressSteps: [],
 
   // Activity
-  activityItems: mockActivityItems,
+  activityItems: [],
 
   // Templates
-  templates: mockTemplates,
+  templates: [],
 
   // Command palette
   commandPaletteOpen: false,
@@ -585,7 +580,7 @@ export const useStore = create<AppState>((set, get) => ({
   // Onboarding
   onboardingStep: 1,
   setOnboardingStep: (step) => set({ onboardingStep: step }),
-  completeOnboarding: () => set({ currentPage: 'workspace', onboardingStep: 1 }),
+  completeOnboarding: () => set({ onboardingStep: 1 }),
 
   // Settings
   settingsTab: 'account',

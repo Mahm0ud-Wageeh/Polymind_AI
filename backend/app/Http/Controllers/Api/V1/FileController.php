@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conversation;
 use App\Models\File;
+use App\Models\Workspace;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -30,6 +32,21 @@ class FileController extends Controller
             'workspace_id' => ['nullable', 'uuid'],
             'conversation_id' => ['nullable', 'uuid'],
         ]);
+
+        if (! empty($data['workspace_id'])) {
+            $workspace = Workspace::findOrFail($data['workspace_id']);
+            abort_unless(
+                $request->user()->organizations()->where('organizations.id', $workspace->organization_id)->exists(),
+                403,
+            );
+        }
+
+        if (! empty($data['conversation_id'])) {
+            abort_unless(
+                Conversation::whereKey($data['conversation_id'])->where('user_id', $request->user()->id)->exists(),
+                403,
+            );
+        }
 
         $upload = $data['file'];
         $disk = config('filesystems.default', 'local');

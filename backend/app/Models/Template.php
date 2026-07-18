@@ -12,7 +12,7 @@ class Template extends Model
     use HasUuids;
 
     protected $fillable = [
-        'workspace_id', 'name', 'icon', 'description', 'prompt', 'category', 'is_public',
+        'workspace_id', 'name', 'icon', 'description', 'prompt', 'category', 'is_public', 'domain',
     ];
 
     protected function casts(): array
