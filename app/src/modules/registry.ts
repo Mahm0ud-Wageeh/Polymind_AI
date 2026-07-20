@@ -4,7 +4,7 @@
  */
 import type { ComponentType } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { FolderKanban, LayoutDashboard, Library, MessageSquare, Network, Terminal, Calculator, ShieldAlert, GitCompare, Wrench, Bot, Waypoints, FileText } from 'lucide-react'
+import { FolderKanban, LayoutDashboard, Library, MessageSquare, Network, Terminal, Calculator, ShieldAlert, GitCompare, Wrench, Bot, Waypoints, FileText, FlaskConical } from 'lucide-react'
 
 export type NavGroup = 'create' | 'manage' | 'system'
 export type DomainId = 'networking'
@@ -82,6 +82,11 @@ export const modules: ModuleManifest[] = [
     id: 'agents', name: 'AI Agents', description: '12 specialized network engineering AI agents',
     icon: Bot, domain: 'networking', path: '/agents', navGroup: 'create', order: 7, inNav: true,
     load: () => import('@/modules/networking/pages/Agents'),
+  },
+  {
+    id: 'lab-emulator', name: 'Lab Emulator', description: 'Virtual labs with Containerlab network emulation',
+    icon: FlaskConical, domain: 'networking', path: '/tools/lab-emulator', navGroup: 'create', order: 7.5, inNav: true,
+    load: () => import('@/modules/networking/pages/LabEmulator'),
   },
   {
     id: 'documentation', name: 'Documentation', description: 'AI network documentation, BOM & PDF export',

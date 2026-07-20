@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\TroubleshootController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\NetworkDesignController;
 use App\Http\Controllers\Api\V1\NetworkToolController;
+use App\Http\Controllers\Api\V1\LabController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ProviderController;
 use App\Http\Controllers\Api\V1\TemplateController;
@@ -73,6 +74,12 @@ Route::prefix('v1')->group(function () {
         Route::post('tools/validate', [NetworkToolController::class, 'validateDesign']);
         Route::post('tools/config-diff', [NetworkToolController::class, 'diff']);
         Route::post('tools/documentation/generate', [NetworkToolController::class, 'documentation']);
+
+        // Lab emulation (Containerlab).
+        Route::apiResource('labs', LabController::class);
+        Route::post('labs/{lab}/start', [LabController::class, 'start']);
+        Route::post('labs/{lab}/stop', [LabController::class, 'stop']);
+        Route::post('labs/{lab}/refresh', [LabController::class, 'refresh']);
 
         // Chat: streamed completion (SSE) + regenerate.
         Route::post('chat/stream', [ChatController::class, 'stream']);
