@@ -70,14 +70,14 @@ class LabOrchestrator
     public function stop(Lab $lab): Lab
     {
         if ($this->isDaemonAvailable()) {
-            $this->execCmd(['containerlab', 'destroy', '-t', $lab->lab_directory]);
+            $this->execCmd(['containerlab', 'destroy', '-t', $lab->lab_directory . '/topology.clab.yml']);
         }
 
         $devices = $lab->devices ?: ($lab->clab_definition ? $this->parseDevices($lab) : []);
         $nodeStatus = $this->mockNodeStatusForStopped($devices);
 
         $lab->fill([
-            'status'     => self::STOPPED,
+            'status'     => self::STATUS_STOPPED,
             'node_status' => $nodeStatus,
             'started_at'  => null,
             'stopped_at'  => Carbon::now(),
@@ -124,13 +124,13 @@ class LabOrchestrator
         $parts[] = "  nodes:";
 
         foreach ($devices as $device) {
+            $slug = $device['slug'] ?? str($device['name'])->slug();
             $kind = $device['kind'] ?? $device['type'] ?? 'generic';
             $image = $device['image'] ?? $this->defaultImage($kind);
-            $parts[] = "    " . $device['slug'] . ":";
+            $parts[] = "    " . $slug . ":";
             $parts[] = "      kind: " . $kind;
             $parts[] = "      image: " . $image;
             $parts[] = "      mgmt-ip: 0.0.0.0";
-            // node-level config is omitted; handled via day-0 config.
 
             if (!empty($device['port_count'])) {
                 $parts[] = "      ports:";
@@ -141,10 +141,17 @@ class LabOrchestrator
             }
         }
 
-        if (isset($device['links'])) {
+        // topology-level links (collected from every device that declares them)
+        $links = [];
+        foreach ($devices as $device) {
+            foreach (($device['links'] ?? []) as $link) {
+                $links[] = "    - endpoints: [\"{$link['from']}\", \"{$link['to']}\"]";
+            }
+        }
+        if ($links !== []) {
             $parts[] = "  links:";
-            foreach ($device['links'] as $link) {
-                $parts[] = "    - endpoints: [\"{$link['from']}\", \"{$link['to']}\"]";
+            foreach ($links as $l) {
+                $parts[] = $l;
             }
         }
 
@@ -204,12 +211,11 @@ class LabOrchestrator
 
     private function mockNodeStatus(array $devices, string $status): array
     {
-        $now = Carbon::now();
-        return array_map(function ($d) use ($status, $now) {
+        return array_map(function ($d) use ($status) {
             return [
                 'name' => $d['slug'] ?? $d['name'] ?? 'unknown',
                 'status' => $status,
-                'uptime' => $status === self::STATUS_RUNNING ? $now->timestamp : null,
+                'uptime' => $status === self::STATUS_RUNNING ? 0 : null,
                 'stats' => [
                     'cpu' => 0,
                     'memory' => 0,
@@ -255,8 +261,17 @@ class LabOrchestrator
 
     private function deployRealLab(Lab $lab, array $devices): array
     {
+        $dir = $lab->lab_directory;
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        file_put_contents(
+            $dir . '/topology.clab.yml',
+            $lab->clab_definition ?? $this->constructDefinition($lab->name, $devices)
+        );
+
         $output = $this->execCmd([
-            'containerlab', 'deploy', '-t', $lab->lab_directory, '--format', 'json'
+            'containerlab', 'deploy', '-t', $dir . '/topology.clab.yml', '--format', 'json',
         ]);
 
         if ($output !== null && $output['code'] === 0) {
@@ -269,7 +284,7 @@ class LabOrchestrator
     private function pollRealLabStatus(Lab $lab): array
     {
         $output = $this->execCmd([
-            'containerlab', 'inspect', '-t', $lab->lab_directory
+            'containerlab', 'inspect', '-t', $lab->lab_directory . '/topology.clab.yml'
         ]);
 
         if ($output !== null && $output['code'] === 0) {

@@ -48,4 +48,9 @@ class Lab extends Model
     {
         return $this->belongsTo(Workspace::class);
     }
+
+    public function getLabDirectoryAttribute(): string
+    {
+        return storage_path('app/labs/' . $this->id);
+    }
 }

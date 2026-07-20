@@ -79,7 +79,7 @@ export const modules: ModuleManifest[] = [
     load: () => import('@/modules/networking/pages/Library'),
   },
   {
-    id: 'agents', name: 'AI Agents', description: '12 specialized network engineering AI agents',
+    id: 'agents', name: 'AI Agents', description: '16 specialized network engineering AI agents',
     icon: Bot, domain: 'networking', path: '/agents', navGroup: 'create', order: 7, inNav: true,
     load: () => import('@/modules/networking/pages/Agents'),
   },
