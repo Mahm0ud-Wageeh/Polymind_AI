@@ -28,8 +28,11 @@ tools/MCP registry.
   month-to-date usage metering, and invoices.
 - **Auth & RBAC** — Sanctum token auth, OAuth (Google/GitHub), roles & permissions
   (Spatie), email verification.
-- **Production hardening** — security headers, CORS, Redis cache/queue/session,
-  rate limiting, code-splitting, and a test suite (Vitest + Playwright + PHPUnit).
+- **Production hardening** — security headers (CSP, HSTS, COOP, CORP), CORS, Redis
+  cache/queue/session, rate limiting (general + per-endpoint), code-splitting, and a
+  test suite (Vitest + Playwright + PHPUnit).
+- **Virtual lab emulation** — Containerlab topology lifecycle with start/stop/refresh
+  and per-node status monitoring.
 
 ---
 
@@ -37,7 +40,7 @@ tools/MCP registry.
 
 | Layer      | Technology |
 | ---------- | ---------- |
-| Frontend   | React 18, TypeScript, Vite, Tailwind CSS, Zustand, Radix UI |
+| Frontend   | React 19, TypeScript, Vite, Tailwind CSS, Zustand, TanStack Query, Radix UI |
 | Backend    | Laravel 12, PHP 8.3 |
 | Database   | PostgreSQL |
 | Cache/Queue| Redis |
@@ -66,7 +69,7 @@ tools/MCP registry.
 │   └── e2e/              # Playwright specs
 ├── backend/             # Laravel 12 API
 │   ├── app/Http/Controllers/Api/V1/
-│   ├── app/Services/     # AI, Billing, Tenancy, Networking
+│   ├── app/Services/     # AI, Billing, Tenancy, Networking (LabOrchestrator)
 │   ├── config/           # ai.php, billing.php, tools.php, services.php
 │   ├── database/         # migrations + seeders
 │   └── tests/            # Feature + Unit
@@ -139,9 +142,12 @@ See `docs/TESTING.md` and `docs/SECURITY.md` for details.
 | Content | `workspaces`, `projects`, `conversations`, `conversations.messages`, `files` |
 | Library | `agents`, `templates`, `tools` |
 | Insights | `providers`, `dashboard` |
+| Labs | `labs` (CRUD), `labs/{id}/start`, `labs/{id}/stop`, `labs/{id}/refresh` |
 | Billing | `billing`, `billing/plans`, `billing/checkout`, `billing/portal`, `billing/webhook` |
 
 All routes except auth and the Stripe webhook require a Sanctum bearer token.
+Tool endpoints (CLI, troubleshoot, IP plan, validate, diff, documentation, labs)
+are rate-limited at 20 req/min; chat/SSE routes at 30 req/min.
 
 ---
 
