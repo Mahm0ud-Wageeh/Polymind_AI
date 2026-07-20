@@ -17,7 +17,6 @@ import {
   ChevronsUpDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   DropdownMenu,
@@ -59,7 +58,7 @@ export function Sidebar() {
 
   // Group modules by navGroup for the sidebar nav section.
   const grouped = navModules().reduce<Record<string, ModuleManifest[]>>((acc, mod) => {
-    ;(acc[mod.navGroup] ??= []).push(mod)
+    ; (acc[mod.navGroup] ??= []).push(mod)
     return acc
   }, {})
   const groupOrder: NavGroup[] = ['manage', 'create', 'system']
@@ -215,7 +214,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation — modules from the registry */}
-      <ScrollArea className="flex-1 px-3">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3">
         {groupOrder.map((group) => {
           const items = grouped[group]
           if (!items || items.length === 0) return null
@@ -352,7 +351,7 @@ export function Sidebar() {
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Footer */}
       <div className="p-3 border-t border-border">

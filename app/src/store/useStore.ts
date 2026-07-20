@@ -4,6 +4,41 @@ import { generateId } from '@/lib/utils'
 import { chatService } from '@/services/chat/chatService'
 import { api, getToken } from '@/lib/api'
 import { authService } from '@/services/auth/authService'
+import { agentsService, type Agent } from '@/services/agents/agentsService'
+
+
+// يبث رد المساعد "حرف بحرف" جوه المحادثة: بيستبدل فقاعة "التفكير"
+// برسالة بتتحدّث مع كل token، وفي الآخر بيثبّت النسخة النهائية.
+async function streamReplyInto(
+  conversationId: string,
+  thinkingId: string,
+  params: { content: string; history: Message[]; fileIds?: string[]; agentId?: string },
+  setMessages: (conversationId: string, updater: (messages: Message[]) => Message[]) => void,
+): Promise<void> {
+  const streamingId = generateId()
+  let started = false
+
+  const reply = await chatService.getAssistantReply({
+    ...params,
+    onDelta: (text) => {
+      setMessages(conversationId, (messages) => {
+        if (!started) {
+          started = true
+          return messages
+            .filter((m) => m.id !== thinkingId)
+            .concat({ id: streamingId, role: 'assistant', content: text, timestamp: new Date(), isStreaming: true })
+        }
+        return messages.map((m) => (m.id === streamingId ? { ...m, content: text } : m))
+      })
+    },
+  })
+
+  setMessages(conversationId, (messages) =>
+    messages
+      .filter((m) => m.id !== thinkingId && m.id !== streamingId)
+      .concat({ ...reply, id: streamingId, isStreaming: false }),
+  )
+}
 
 interface AppState {
   // Theme
@@ -87,6 +122,12 @@ interface AppState {
   // Search
   searchOpen: boolean
   setSearchOpen: (open: boolean) => void
+
+  // Agents
+  agents: Agent[]
+  activeAgentId: string | null
+  setActiveAgent: (id: string | null) => void
+  loadAgents: () => Promise<void>
 }
 
 const mockConversations: Conversation[] = [
@@ -385,11 +426,11 @@ export const useStore = create<AppState>((set, get) => ({
       conversations: state.conversations.map((conv) =>
         conv.id === convId
           ? {
-              ...conv,
-              messages: conv.messages.map((msg) =>
-                msg.id === id ? { ...msg, ...updates } : msg
-              ),
-            }
+            ...conv,
+            messages: conv.messages.map((msg) =>
+              msg.id === id ? { ...msg, ...updates } : msg
+            ),
+          }
           : conv
       ),
     }))
@@ -441,9 +482,12 @@ export const useStore = create<AppState>((set, get) => ({
     appendMessage(conversationId, thinking)
     const history =
       get().conversations.find((c) => c.id === conversationId)?.messages ?? []
-    const reply = await chatService.getAssistantReply({ content: trimmed, history, fileIds })
-    setMessages(conversationId, (messages) =>
-      messages.filter((m) => m.id !== thinking.id).concat(reply)
+
+    await streamReplyInto(
+      conversationId,
+      thinking.id,
+      { content: trimmed, history, fileIds, agentId: get().activeAgentId ?? undefined },
+      setMessages,
     )
   },
   deleteMessage: (messageId) => {
@@ -464,13 +508,13 @@ export const useStore = create<AppState>((set, get) => ({
       conversations: state.conversations.map((conv) =>
         conv.id === convId
           ? {
-              ...conv,
-              messages: conv.messages.map((m) =>
-                m.id === messageId
-                  ? { ...m, reaction: m.reaction === reaction ? undefined : reaction }
-                  : m
-              ),
-            }
+            ...conv,
+            messages: conv.messages.map((m) =>
+              m.id === messageId
+                ? { ...m, reaction: m.reaction === reaction ? undefined : reaction }
+                : m
+            ),
+          }
           : conv
       ),
     }))
@@ -487,11 +531,7 @@ export const useStore = create<AppState>((set, get) => ({
     setMessages(convId, (msgs) => msgs.slice(0, lastUserIdx + 1))
     const thinking = chatService.createThinkingMessage()
     appendMessage(convId, thinking)
-    const history = get().conversations.find((c) => c.id === convId)?.messages ?? []
-    const reply = await chatService.getAssistantReply({ content: userMsg.content, history })
-    setMessages(convId, (messages) =>
-      messages.filter((m) => m.id !== thinking.id).concat(reply)
-    )
+    await streamReplyInto(convId, thinking.id, { content: userMsg.content, history }, setMessages)
   },
   editAndResend: async (messageId, newContent) => {
     const trimmed = newContent.trim()
@@ -511,10 +551,7 @@ export const useStore = create<AppState>((set, get) => ({
     const thinking = chatService.createThinkingMessage()
     appendMessage(convId, thinking)
     const history = get().conversations.find((c) => c.id === convId)?.messages ?? []
-    const reply = await chatService.getAssistantReply({ content: trimmed, history })
-    setMessages(convId, (messages) =>
-      messages.filter((m) => m.id !== thinking.id).concat(reply)
-    )
+    await streamReplyInto(convId, thinking.id, { content: trimmed, history }, setMessages)
   },
 
   // Projects
@@ -556,6 +593,9 @@ export const useStore = create<AppState>((set, get) => ({
       projects: projectResponse.map((project) => ({ id: project.id, name: project.name, conversations: [] })),
       activeConversationId: null,
     })
+
+    void get().loadAgents().catch(() => undefined)
+
   },
   updateUserProfile: (patch) =>
     set((state) => ({ user: state.user ? { ...state.user, ...patch } : state.user })),
@@ -589,4 +629,17 @@ export const useStore = create<AppState>((set, get) => ({
   // Search
   searchOpen: false,
   setSearchOpen: (open) => set({ searchOpen: open }),
+
+  // Agents
+  agents: [],
+  activeAgentId: (typeof window !== 'undefined' && localStorage.getItem('polymind.agent')) || null,
+  setActiveAgent: (id) => {
+    set({ activeAgentId: id })
+    if (id) localStorage.setItem('polymind.agent', id)
+    else localStorage.removeItem('polymind.agent')
+  },
+  loadAgents: async () => {
+    const agents = await agentsService.list()
+    set({ agents })
+  },
 }))

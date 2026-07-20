@@ -2,8 +2,6 @@ import { useRef, useEffect } from 'react'
 import { useStore } from '@/store/useStore'
 import { ChatMessage } from './ChatMessage'
 import { EmptyState } from './EmptyState'
-import { ScrollArea } from '@/components/ui/scroll-area'
-
 export function ChatArea() {
   const { conversations, activeConversationId } = useStore()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -28,7 +26,7 @@ export function ChatArea() {
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
-      <ScrollArea className="flex-1" ref={scrollRef}>
+      <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
         <div className="max-w-3xl 2xl:max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
           {messages.map((message, i) => (
             <ChatMessage
@@ -38,7 +36,7 @@ export function ChatArea() {
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }

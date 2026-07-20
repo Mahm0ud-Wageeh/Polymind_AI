@@ -4,7 +4,7 @@
  */
 import type { ComponentType } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { FolderKanban, LayoutDashboard, Library, MessageSquare, Network, Terminal, Calculator, ShieldAlert, GitCompare, Wrench } from 'lucide-react'
+import { FolderKanban, LayoutDashboard, Library, MessageSquare, Network, Terminal, Calculator, ShieldAlert, GitCompare, Wrench, Bot, Waypoints, FileText } from 'lucide-react'
 
 export type NavGroup = 'create' | 'manage' | 'system'
 export type DomainId = 'networking'
@@ -37,6 +37,11 @@ export const modules: ModuleManifest[] = [
     id: 'designer', name: 'Network Designer', description: 'Create and save an AI-generated network design',
     icon: Network, domain: 'networking', path: '/designer', navGroup: 'create', order: 1, inNav: true,
     load: () => import('@/modules/networking/pages/Designer'),
+  },
+  {
+    id: 'topology-designer', name: 'Topology Designer', description: 'Drag-and-drop interactive network diagram editor',
+    icon: Waypoints, domain: 'networking', path: '/tools/topology-designer', navGroup: 'create', order: 1.5, inNav: true,
+    load: () => import('@/modules/networking/pages/TopologyDesigner'),
   },
   {
     id: 'workspace', name: 'AI Chat', description: 'Chat with the network engineering assistant',
@@ -72,6 +77,16 @@ export const modules: ModuleManifest[] = [
     id: 'library', name: 'Library', description: 'Browse agents, templates, and tools',
     icon: Library, domain: 'networking', path: '/library', navGroup: 'system', order: 1, inNav: true,
     load: () => import('@/modules/networking/pages/Library'),
+  },
+  {
+    id: 'agents', name: 'AI Agents', description: '12 specialized network engineering AI agents',
+    icon: Bot, domain: 'networking', path: '/agents', navGroup: 'create', order: 7, inNav: true,
+    load: () => import('@/modules/networking/pages/Agents'),
+  },
+  {
+    id: 'documentation', name: 'Documentation', description: 'AI network documentation, BOM & PDF export',
+    icon: FileText, domain: 'networking', path: '/tools/documentation', navGroup: 'create', order: 3.5, inNav: true,
+    load: () => import('@/modules/networking/pages/NetworkDocumentation'),
   },
 ]
 

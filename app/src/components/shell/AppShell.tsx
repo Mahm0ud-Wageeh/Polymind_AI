@@ -54,7 +54,7 @@ export function AppShell() {
         </Sheet>
 
         {/* Main Content — module pages render here via <Outlet /> */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <TopBar />
           <Outlet />
         </div>

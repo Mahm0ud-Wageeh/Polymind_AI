@@ -22,42 +22,79 @@ class ChatController extends Controller
     /**
      * Stream an assistant reply over Server-Sent Events.
      */
-    public function stream(Request $request): StreamedResponse
-    {
-        [$conversation, $userMessage, $chatRequest, $provider] = $this->prepare($request);
+   public function stream(Request $request)
+{
+    [$conversation, $userMessage, $chatRequest, $provider] = $this->prepare($request);
 
-        return response()->stream(function () use ($conversation, $chatRequest, $provider) {
-            $this->sse('meta', ['conversation_id' => $conversation->id]);
+    // 🧠 توجيه الشات الذكي: الرسالة دي محتاجة قدرة؟
+    $route = app(\App\Services\Chat\ChatToolRouter::class)->route($userMessage->content, $conversation);
 
-            $response = $this->ai->stream(
-                $chatRequest,
-                function (string $delta) {
-                    $this->sse('delta', ['content' => $delta]);
-                },
-                $provider,
-            );
+    // لو القدرة عايزة برومبت خبير → بدّل الـ systemPrompt وكمّل streaming عادي
+    if ($route !== null && ! empty($route['systemPrompt'])) {
+        $chatRequest = new ChatRequest(
+            model: $chatRequest->model,
+            messages: $chatRequest->messages,
+            temperature: $chatRequest->temperature,
+            maxTokens: $chatRequest->maxTokens,
+            systemPrompt: $route['systemPrompt'],
+        );
+    }
+
+    return response()->stream(function () use ($conversation, $chatRequest, $provider, $route) {
+        $this->sse('meta', ['conversation_id' => $conversation->id]);
+
+        // نتيجة قدرة جاهزة (زي التوبولوجي) → نبثّها زي ما هي
+        if ($route !== null && isset($route['content'])) {
+            foreach (mb_str_split($route['content'], 40) as $piece) {
+                $this->sse('delta', ['content' => $piece]);
+            }
 
             $assistant = $conversation->messages()->create([
-                'role' => 'assistant',
-                'content' => $response->content,
-                'provider' => $response->provider,
-                'model' => $response->model,
-                'tokens_input' => $response->tokensInput,
-                'tokens_output' => $response->tokensOutput,
-                'cost' => $response->cost,
+                'role'          => 'assistant',
+                'content'       => $route['content'],
+                'provider'      => 'polymind',
+                'model'         => $route['tool'],
+                'tokens_input'  => 0,
+                'tokens_output' => 0,
+                'cost'          => 0,
             ]);
 
-            $this->recordUsage($conversation, $response->provider, $response->model, $response->tokensInput, $response->tokensOutput, $response->cost);
             $conversation->forceFill(['last_message_at' => now()])->save();
+            $this->sse('done', ['message_id' => $assistant->id, 'usage' => []]);
 
-            $this->sse('done', ['message_id' => $assistant->id, 'usage' => $response->toArray()]);
-        }, 200, [
-            'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'X-Accel-Buffering' => 'no',
-            'Connection' => 'keep-alive',
+            return;
+        }
+
+        // العادي: رد AI مستمر (أو ببرومبت الخبير)
+        $response = $this->ai->stream(
+            $chatRequest,
+            function (string $delta) {
+                $this->sse('delta', ['content' => $delta]);
+            },
+            $provider,
+        );
+
+        $assistant = $conversation->messages()->create([
+            'role'          => 'assistant',
+            'content'       => $response->content,
+            'provider'      => $response->provider,
+            'model'         => $response->model,
+            'tokens_input'  => $response->tokensInput,
+            'tokens_output' => $response->tokensOutput,
+            'cost'          => $response->cost,
         ]);
-    }
+
+        $this->recordUsage($conversation, $response->provider, $response->model, $response->tokensInput, $response->tokensOutput, $response->cost);
+        $conversation->forceFill(['last_message_at' => now()])->save();
+
+        $this->sse('done', ['message_id' => $assistant->id, 'usage' => $response->toArray()]);
+    }, 200, [
+        'Content-Type'      => 'text/event-stream',
+        'Cache-Control'     => 'no-cache',
+        'X-Accel-Buffering' => 'no',
+        'Connection'        => 'keep-alive',
+    ]);
+}
 
     /**
      * Blocking (non-streamed) completion.
@@ -100,6 +137,7 @@ class ChatController extends Controller
             'model' => ['nullable', 'string'],
             'file_ids' => ['nullable', 'array'],
             'file_ids.*' => ['uuid'],
+            'agent_id' => ['nullable', 'uuid'],
         ]);
 
         $user = $request->user();
@@ -145,10 +183,31 @@ class ChatController extends Controller
             ->map(fn (Message $m) => ['role' => $m->role, 'content' => (string) $m->content])
             ->all();
 
+        
+        $systemPrompt ='You are Polymind, a versatile AI assistant (like ChatGPT/Claude) that helps with ANY topic: coding, writing, analysis, math, networking, and general questions. '
+    .'Always format answers in rich Markdown so they render beautifully: use ## and ### headings, bold, bullet and numbered lists, and blockquotes for notes. '
+    .'Put every code snippet inside a fenced code block labelled with the correct language (python, ts, tsx, bash, json, sql, etc.) so it gets syntax highlighting. '
+    .'Use GitHub-flavored Markdown tables for any structured or comparative data. '
+    .'When explaining a process, architecture, flow, or relationship, add a diagram inside a fenced code block labelled mermaid (flowchart, sequence, graph, etc.). '
+    .'Use LaTeX for math: inline with single dollar signs and block with double dollar signs. '
+    .'Reply in the SAME language the user writes in (if they write Arabic, answer in Arabic) but keep code, commands, and technical keywords in English. '
+    .'Be clear, well-structured, and skimmable; prefer short sections over long paragraphs.';
+
+        if (! empty($data['agent_id'])) {
+            $agent = \App\Models\Agent::where('id', $data['agent_id'])
+                ->where(fn ($q) => $q->where('user_id', $user->id)->orWhere('is_public', true))
+                ->first();
+
+            if ($agent && $agent->system_prompt) {
+                $systemPrompt = $agent->system_prompt;
+            }
+        }
+        
+
         $chatRequest = new ChatRequest(
             model: $data['model'] ?? $conversation->model ?? config('ai.default_model'),
             messages: $history,
-            systemPrompt: 'You are Polymind, a helpful, precise AI workspace assistant.',
+            systemPrompt: $systemPrompt,
         );
 
         return [$conversation, $userMessage, $chatRequest, $data['provider'] ?? $conversation->provider];

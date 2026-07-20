@@ -13,7 +13,7 @@ class AgentController extends Controller
     {
         return Agent::query()
             ->where(fn ($q) => $q->where('user_id', $request->user()->id)->orWhere('is_public', true))
-            ->when($request->query('workspace_id'), fn ($q, $id) => $q->where('workspace_id', $id))
+            ->when($request->query('workspace_id'), fn ($q, $id) => $q->where(fn ($w) => $w->where('workspace_id', $id)->orWhereNull('workspace_id')))
             ->when($request->query('domain'), fn ($q, $domain) => $q->where('domain', $domain))
             ->orderBy('name')
             ->get();
