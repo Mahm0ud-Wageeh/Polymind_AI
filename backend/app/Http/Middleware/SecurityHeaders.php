@@ -19,10 +19,20 @@ class SecurityHeaders
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'DENY',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
-            // Modern browsers rely on CSP instead of the legacy XSS auditor.
             'X-XSS-Protection' => '0',
             'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
             'Cross-Origin-Opener-Policy' => 'same-origin',
+            'Cross-Origin-Resource-Policy' => 'same-origin',
+            'Content-Security-Policy' => "default-src 'self'; "
+                ."base-uri 'self'; "
+                ."font-src 'self' https: data:; "
+                ."form-action 'self'; "
+                ."frame-ancestors 'none'; "
+                ."img-src 'self' data: blob:; "
+                ."object-src 'none'; "
+                ."script-src 'self'; "
+                ."style-src 'self' 'unsafe-inline'; "
+                ."worker-src 'self' blob:",
         ];
 
         foreach ($headers as $key => $value) {

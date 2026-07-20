@@ -67,23 +67,26 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('network-designs', NetworkDesignController::class);
         Route::post('network-designs/generate', [NetworkDesignController::class, 'generate']);
 
-        // Tools
-        Route::post('tools/cisco-cli/generate', [CiscoCliController::class, 'generate']);
-        Route::post('tools/troubleshoot/analyze', [TroubleshootController::class, 'analyze']);
-        Route::post('tools/ip-plan', [NetworkToolController::class, 'planIp']);
-        Route::post('tools/validate', [NetworkToolController::class, 'validateDesign']);
-        Route::post('tools/config-diff', [NetworkToolController::class, 'diff']);
-        Route::post('tools/documentation/generate', [NetworkToolController::class, 'documentation']);
+        // Tools (tighter throttle — compute-heavy or AI-backed).
+        Route::middleware('throttle:tools')->group(function () {
+            Route::post('tools/cisco-cli/generate', [CiscoCliController::class, 'generate']);
+            Route::post('tools/troubleshoot/analyze', [TroubleshootController::class, 'analyze']);
+            Route::post('tools/ip-plan', [NetworkToolController::class, 'planIp']);
+            Route::post('tools/validate', [NetworkToolController::class, 'validateDesign']);
+            Route::post('tools/config-diff', [NetworkToolController::class, 'diff']);
+            Route::post('tools/documentation/generate', [NetworkToolController::class, 'documentation']);
 
-        // Lab emulation (Containerlab).
-        Route::apiResource('labs', LabController::class);
-        Route::post('labs/{lab}/start', [LabController::class, 'start']);
-        Route::post('labs/{lab}/stop', [LabController::class, 'stop']);
-        Route::post('labs/{lab}/refresh', [LabController::class, 'refresh']);
+            Route::apiResource('labs', LabController::class);
+            Route::post('labs/{lab}/start', [LabController::class, 'start']);
+            Route::post('labs/{lab}/stop', [LabController::class, 'stop']);
+            Route::post('labs/{lab}/refresh', [LabController::class, 'refresh']);
+        });
 
-        // Chat: streamed completion (SSE) + regenerate.
-        Route::post('chat/stream', [ChatController::class, 'stream']);
-        Route::post('chat/completions', [ChatController::class, 'complete']);
+        // Chat: streamed completion (SSE) + regenerate (tighter throttle — AI credits).
+        Route::middleware('throttle:chat')->group(function () {
+            Route::post('chat/stream', [ChatController::class, 'stream']);
+            Route::post('chat/completions', [ChatController::class, 'complete']);
+        });
 
         // Providers, tools & usage.
         Route::get('providers', [ProviderController::class, 'index']);
