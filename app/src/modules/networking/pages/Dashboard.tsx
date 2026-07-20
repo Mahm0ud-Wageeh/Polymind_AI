@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { FolderKanban, Network, TrendingUp, MessageSquare, Coins, Loader2 } from 'lucide-react'
+import { FolderKanban, Network, TrendingUp, MessageSquare, Coins, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { dashboardService, type DashboardOverview } from '@/services/dashboard/dashboardService'
+import { useDashboardOverview } from '@/hooks/useQueries'
 
 const quickLinks = [
   { icon: Network, label: 'Network Designer', to: '/designer' },
@@ -11,22 +10,7 @@ const quickLinks = [
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const [data, setData] = useState<DashboardOverview | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let active = true
-    dashboardService.overview()
-      .then((response) => {
-        if (active) setData(response)
-      })
-      .catch((err: Error) => {
-        if (active) setError(err.message)
-      })
-    return () => {
-      active = false
-    }
-  }, [])
+  const { data, isLoading, error } = useDashboardOverview()
 
   const stats = data
     ? [
@@ -54,10 +38,13 @@ export default function Dashboard() {
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm"><p className="font-medium">Dashboard data could not be loaded.</p><p className="mt-1 text-muted-foreground">{error}</p></div>
-        ) : !data ? (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
+            <div className="flex items-center gap-2 font-medium"><AlertCircle className="h-4 w-4" /> Dashboard data could not be loaded.</div>
+            <p className="mt-1 text-muted-foreground">{error.message}</p>
+          </div>
+        ) : isLoading ? (
           <div className="flex items-center gap-2 rounded-xl border border-border p-5 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading your workspace data…</div>
-        ) : (
+        ) : data ? (
           <>
             <div className="grid grid-cols-1 gap-3 animate-slide-in-bottom sm:grid-cols-3">
               {stats.map((stat) => (
@@ -75,7 +62,7 @@ export default function Dashboard() {
               )}
             </section>
           </>
-        )}
+        ) : null}
       </div>
     </div>
   )

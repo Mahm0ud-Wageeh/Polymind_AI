@@ -25,5 +25,13 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('auth', fn (Request $request) => Limit::perMinute($this->app->environment('testing') ? 1000 : 10)
             ->by($request->ip()));
+
+        // Stricter limits for compute-heavy tool endpoints.
+        RateLimiter::for('tools', fn (Request $request) => Limit::perMinute(20)
+            ->by($request->user()?->id ?: $request->ip()));
+
+        // Chat/SSE streams consume AI credits so they get a tighter window.
+        RateLimiter::for('chat', fn (Request $request) => Limit::perMinute(30)
+            ->by($request->user()?->id ?: $request->ip()));
     }
 }

@@ -6,6 +6,16 @@ Thumbs.db
 .zcode/
 *.swp
 
+# ---- Local task artifacts ----
+.tmp/
+*.pid
+deliverables/
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+
 # ---- Node / frontend ----
 app/node_modules/
 app/dist/

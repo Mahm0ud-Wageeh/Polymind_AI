@@ -36,9 +36,9 @@ jobs:
           cp .env.example .env
           php artisan key:generate
       - name: Static analysis (Larastan)
-        run: ./vendor/bin/phpstan analyse --no-progress || true
+        run: ./vendor/bin/phpstan analyse --no-progress
       - name: Code style (Pint)
-        run: ./vendor/bin/pint --test || true
+        run: ./vendor/bin/pint --test
       - name: Run tests
         run: php artisan test
         env:
