@@ -11,8 +11,8 @@ return [
     | Default provider & model
     |--------------------------------------------------------------------------
     */
-    'default' => env('AI_DEFAULT_PROVIDER', 'openai'),
-    'default_model' => env('AI_DEFAULT_MODEL', 'gpt-4o-mini'),
+    'default' => env('AI_DEFAULT_PROVIDER', 'groq'),
+    'default_model' => env('AI_DEFAULT_MODEL', 'llama-3.3-70b-versatile'),
 
     /*
     |--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ return [
     */
     'retries' => (int) env('AI_RETRIES', 2),
     'retry_sleep_ms' => (int) env('AI_RETRY_SLEEP_MS', 400),
-    'fallbacks' => ['groq', 'openrouter'],
+    'fallbacks' => ['openai', 'openrouter'],
 
     /*
     |--------------------------------------------------------------------------
