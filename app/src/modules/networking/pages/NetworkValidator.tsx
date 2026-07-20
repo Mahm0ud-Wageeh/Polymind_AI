@@ -11,16 +11,18 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { validateNetworkDesign, severityColor, severityBg, type ValidationResult } from '@/lib/validationEngine'
+import { severityColor, severityBg, type ValidationResult } from '@/lib/validationEngine'
 import type { NetworkDesignData } from '@/services/networking/designerService'
 import { cn } from '@/lib/utils'
+import { networkToolsService } from '@/services/networking/networkToolsService'
 
 export default function NetworkValidator() {
   const [jsonInput, setJsonInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<ValidationResult | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const handleValidate = () => {
+  const handleValidate = async () => {
     setError(null)
     setResult(null)
 
@@ -35,42 +37,24 @@ export default function NetworkValidator() {
         throw new Error('JSON does not appear to be a valid Polymind network design.')
       }
       
-      const validationResult = validateNetworkDesign(data)
-      setResult(validationResult)
+      setLoading(true)
+      const validationResult = await networkToolsService.validate(data)
+      setResult({
+        ...validationResult,
+        timestamp: new Date(),
+        issues: validationResult.issues.map((issue, index) => ({
+          ...issue,
+          id: `issue-${index + 1}`,
+          affectedDevices: [],
+          autoFixable: false,
+          category: issue.category as ValidationResult['issues'][number]['category'],
+        })),
+      })
     } catch (e) {
-      setError(`Invalid JSON: ${(e as Error).message}`)
+      setError(`Could not validate this design: ${(e as Error).message}`)
+    } finally {
+      setLoading(false)
     }
-  }
-
-  const loadExample = () => {
-    const example: NetworkDesignData = {
-      devices: [
-        { name: 'Core-Router', type: 'Router', role: 'Core Gateway', count: 1, layer: 'Core', modelSuggestion: 'Cisco C8300' },
-        { name: 'Dist-SW', type: 'Switch', role: 'Distribution', count: 1, layer: 'Distribution', modelSuggestion: 'Cisco C9300' }
-      ],
-      topology: {
-        layers: [],
-        connections: [
-          { from: 'Core-Router', to: 'Dist-SW', medium: 'Fiber' },
-          { from: 'Unknown-Device', to: 'Dist-SW', medium: 'Copper' } // Intentional disconnect
-        ]
-      },
-      ipAddressing: {
-        strategy: 'Static',
-        subnets: [
-          { vlanId: 10, name: 'VLAN10', network: '192.168.1.0/24', mask: '255.255.255.0', purpose: 'Users' },
-          { vlanId: 20, name: 'VLAN20', network: '192.168.1.0/24', mask: '255.255.255.0', purpose: 'Servers' }, // Intentional overlap
-          { vlanId: 30, name: 'VLAN30', network: '', mask: '', purpose: 'Guest' } // Intentional missing gateway
-        ]
-      },
-      vlanPlan: [
-        { id: 10, name: 'VLAN10', subnet: '192.168.1.0/24', purpose: 'Users' },
-        { id: 10, name: 'VLAN20', subnet: '192.168.1.0/24', purpose: 'Servers' } // Intentional duplicate VLAN ID
-      ]
-    }
-    setJsonInput(JSON.stringify(example, null, 2))
-    setError(null)
-    setResult(null)
   }
 
   return (
@@ -87,7 +71,6 @@ export default function NetworkValidator() {
               Analyze network designs for conflicts, missing configs, and security issues.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={loadExample}>Load Example</Button>
         </div>
 
         <div className="flex-1 flex flex-col min-h-0">
@@ -111,9 +94,9 @@ export default function NetworkValidator() {
           </div>
         )}
 
-        <Button onClick={handleValidate} className="w-full mt-4 gap-2">
+        <Button onClick={() => void handleValidate()} disabled={loading} className="w-full mt-4 gap-2">
           <Activity className="h-4 w-4" />
-          Run Validation
+          {loading ? 'Validating…' : 'Run Validation'}
         </Button>
       </div>
 

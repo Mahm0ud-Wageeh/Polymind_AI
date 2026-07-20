@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { FileText, Printer, Download, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { designerService, type NetworkDesignResponse } from '@/services/networking/designerService'
-import { buildBom, bomTotal, toBomCsv, buildMarkdownDoc, downloadTextFile } from '@/services/networking/documentationService'
+import { buildBom, bomTotal, toBomCsv, downloadTextFile } from '@/services/networking/documentationService'
+import { networkToolsService } from '@/services/networking/networkToolsService'
 
 const money = (n: number) => `$${n.toLocaleString('en-US')}`
 
@@ -29,6 +30,16 @@ export default function NetworkDocumentation() {
     const selected = useMemo(() => designs.find((d) => d.id === selectedId) ?? null, [designs, selectedId])
     const data = selected?.designData ?? null
     const bom = useMemo(() => (data ? buildBom(data) : []), [data])
+
+    const downloadDocumentation = async () => {
+        if (!selected) return
+        try {
+            const document = await networkToolsService.documentation(selected.id)
+            downloadTextFile(document.filename, document.markdown, 'text/markdown')
+        } catch (cause) {
+            setError((cause as Error).message)
+        }
+    }
 
     if (loading) {
         return <div className="flex-1 h-full grid place-items-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -68,7 +79,7 @@ export default function NetworkDocumentation() {
                     <FileSpreadsheet className="h-4 w-4" /> BOM CSV
                 </Button>
                 <Button variant="outline" size="sm" disabled={!data} className="gap-1.5"
-                    onClick={() => { if (data && selected) downloadTextFile(`${selected.name}.md`, buildMarkdownDoc(selected.name, data), 'text/markdown') }}>
+                    onClick={() => void downloadDocumentation()}>
                     <Download className="h-4 w-4" /> Markdown
                 </Button>
                 <Button size="sm" disabled={!data} className="gap-1.5" onClick={() => window.print()}>

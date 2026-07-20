@@ -13,7 +13,7 @@ export default function Agents() {
         void loadAgents().catch(() => undefined)
     }, [loadAgents])
 
-    const useAgent = (id: string) => {
+    const selectAgent = (id: string) => {
         setActiveAgent(id)
         navigate('/workspace')
     }
@@ -28,7 +28,7 @@ export default function Agents() {
                 {agents.map((agent) => (
                     <button
                         key={agent.id}
-                        onClick={() => useAgent(agent.id)}
+                        onClick={() => selectAgent(agent.id)}
                         className={`text-left rounded-xl border p-4 transition hover:shadow-md ${activeAgentId === agent.id ? 'border-primary ring-2 ring-primary/30' : 'border-border'}`}
                     >
                         <div className="font-medium">{agent.name}</div>

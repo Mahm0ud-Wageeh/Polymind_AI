@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react'
+import { useCallback, useEffect, useState, type DragEvent } from 'react'
 import {
     ReactFlow,
     ReactFlowProvider,
@@ -42,7 +42,7 @@ function loadDraft(): { nodes: Node[]; edges: Edge[] } {
 }
 
 function EditorInner() {
-    const draft = useRef(loadDraft()).current
+    const [draft] = useState(loadDraft)
     const [nodes, setNodes, onNodesChange] = useNodesState(draft.nodes)
     const [edges, setEdges, onEdgesChange] = useEdgesState(draft.edges)
     const [selectedId, setSelectedId] = useState<string | null>(null)

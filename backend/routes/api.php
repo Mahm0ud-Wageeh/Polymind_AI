@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\CiscoCliController;
 use App\Http\Controllers\Api\V1\TroubleshootController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\NetworkDesignController;
+use App\Http\Controllers\Api\V1\NetworkToolController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ProviderController;
 use App\Http\Controllers\Api\V1\TemplateController;
@@ -68,6 +69,10 @@ Route::prefix('v1')->group(function () {
         // Tools
         Route::post('tools/cisco-cli/generate', [CiscoCliController::class, 'generate']);
         Route::post('tools/troubleshoot/analyze', [TroubleshootController::class, 'analyze']);
+        Route::post('tools/ip-plan', [NetworkToolController::class, 'planIp']);
+        Route::post('tools/validate', [NetworkToolController::class, 'validateDesign']);
+        Route::post('tools/config-diff', [NetworkToolController::class, 'diff']);
+        Route::post('tools/documentation/generate', [NetworkToolController::class, 'documentation']);
 
         // Chat: streamed completion (SSE) + regenerate.
         Route::post('chat/stream', [ChatController::class, 'stream']);

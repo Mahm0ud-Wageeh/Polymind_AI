@@ -15,21 +15,21 @@ const clone = (s: Snapshot): Snapshot => ({
 export function useUndoRedo() {
     const past = useRef<Snapshot[]>([])
     const future = useRef<Snapshot[]>([])
-    const [, bump] = useState(0)
-    const rerender = () => bump((n) => n + 1)
+    const [history, setHistory] = useState({ past: 0, future: 0 })
+    const syncHistory = () => setHistory({ past: past.current.length, future: future.current.length })
 
     const takeSnapshot = useCallback((current: Snapshot) => {
         past.current.push(clone(current))
         if (past.current.length > 100) past.current.shift()
         future.current = []
-        rerender()
+        syncHistory()
     }, [])
 
     const undo = useCallback((current: Snapshot): Snapshot | null => {
         const prev = past.current.pop()
         if (!prev) return null
         future.current.push(clone(current))
-        rerender()
+        syncHistory()
         return prev
     }, [])
 
@@ -37,7 +37,7 @@ export function useUndoRedo() {
         const next = future.current.pop()
         if (!next) return null
         past.current.push(clone(current))
-        rerender()
+        syncHistory()
         return next
     }, [])
 
@@ -45,7 +45,7 @@ export function useUndoRedo() {
         takeSnapshot,
         undo,
         redo,
-        canUndo: past.current.length > 0,
-        canRedo: future.current.length > 0,
+        canUndo: history.past > 0,
+        canRedo: history.future > 0,
     }
 }

@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { diffLines } from 'diff'
 import {
   GitCompare,
   FileMinus,
@@ -9,15 +8,37 @@ import {
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { networkToolsService } from '@/services/networking/networkToolsService'
+
+type DiffPart = { value: string; count: number; added?: boolean; removed?: boolean }
 
 export default function ConfigDiff() {
-  const [oldConfig, setOldConfig] = useState('!\n! Router Initial Config\n!\nhostname Router-A\n!\ninterface GigabitEthernet0/0\n ip address 192.168.1.1 255.255.255.0\n no shutdown\n!\ninterface GigabitEthernet0/1\n no ip address\n shutdown\n!\nend')
-  const [newConfig, setNewConfig] = useState('!\n! Router Updated Config\n!\nhostname Router-CORE\n!\ninterface GigabitEthernet0/0\n ip address 10.0.0.1 255.255.255.0\n no shutdown\n!\ninterface GigabitEthernet0/1\n ip address 192.168.2.1 255.255.255.0\n no shutdown\n!\nrouter ospf 1\n network 10.0.0.0 0.0.0.255 area 0\n!\nend')
+  const [oldConfig, setOldConfig] = useState('')
+  const [newConfig, setNewConfig] = useState('')
   const [viewMode, setViewMode] = useState<'split' | 'unified'>('split')
+  const [diffResult, setDiffResult] = useState<DiffPart[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const diffResult = useMemo(() => {
-    return diffLines(oldConfig, newConfig)
-  }, [oldConfig, newConfig])
+  const runDiff = async () => {
+    if (!oldConfig.trim() || !newConfig.trim()) {
+      setError('Provide both configurations before comparing them.')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await networkToolsService.diff(oldConfig, newConfig)
+      setDiffResult(response.chunks.map((chunk) => ({
+        value: `${chunk.line}\n`, count: 1, added: chunk.type === 'added', removed: chunk.type === 'removed',
+      })))
+    } catch (cause) {
+      setError((cause as Error).message)
+      setDiffResult([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const stats = useMemo(() => {
     let added = 0
@@ -49,6 +70,7 @@ export default function ConfigDiff() {
             </div>
           </div>
           <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+            <Button size="sm" onClick={() => void runDiff()} disabled={loading}>{loading ? 'Comparing…' : 'Compare'}</Button>
             <button
               onClick={() => setViewMode('split')}
               className={cn("px-3 py-1.5 text-xs font-medium rounded-md transition-colors", viewMode === 'split' ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground")}
@@ -114,6 +136,7 @@ export default function ConfigDiff() {
 
         {/* Right Panel: Diff View */}
         <div className="w-2/3 bg-card flex flex-col">
+          {error && <p className="px-6 py-3 text-sm text-destructive border-b border-border">{error}</p>}
           <div className="px-6 py-3 border-b border-border bg-background/50 flex items-center gap-6 shrink-0 text-sm">
             <div className="font-medium text-muted-foreground">Changes:</div>
             <div className="flex items-center gap-2 text-success">

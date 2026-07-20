@@ -6,6 +6,10 @@ Thumbs.db
 .zcode/
 *.swp
 
+# ---- Local task artifacts ----
+.tmp/
+*.pid
+
 # ---- Node / frontend ----
 app/node_modules/
 app/dist/
