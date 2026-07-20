@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Conversation, Message, Project, Artifact, ProgressStep, ActivityItem, Workspace, User, Theme, PanelTab, Template, Attachment, Preferences } from '@/types'
+import type { Conversation, Message, Project, Artifact, ProgressStep, ActivityItem, Workspace, User, Theme, PanelTab, SettingsTab, Template, Attachment, Preferences } from '@/types'
 import { generateId } from '@/lib/utils'
 import { chatService } from '@/services/chat/chatService'
 import { api, getToken } from '@/lib/api'
@@ -116,8 +116,8 @@ interface AppState {
   completeOnboarding: () => void
 
   // Settings
-  settingsTab: string
-  setSettingsTab: (tab: string) => void
+  settingsTab: SettingsTab
+  setSettingsTab: (tab: SettingsTab) => void
 
   // Search
   searchOpen: boolean

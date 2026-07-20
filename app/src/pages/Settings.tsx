@@ -32,8 +32,9 @@ import {
   type BillingOverview,
   type Plan,
 } from '@/services/billing/billingService'
+import type { SettingsTab } from '@/types'
 
-const settingsTabs = [
+const settingsTabs: { id: SettingsTab; icon: typeof User; label: string }[] = [
   { id: 'account', icon: User, label: 'Account' },
   { id: 'workspace', icon: Building2, label: 'Workspace' },
   { id: 'appearance', icon: Palette, label: 'Appearance' },
