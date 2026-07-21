@@ -33,6 +33,7 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress --no-scripts
       - name: Prepare environment
         run: |
+          mkdir -p bootstrap/cache storage/framework/cache storage/framework/sessions storage/framework/views storage/logs
           cp .env.example .env
           php artisan key:generate
           php artisan package:discover --ansi
@@ -45,6 +46,9 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
 
   frontend:
     name: Frontend (React + Vite)
