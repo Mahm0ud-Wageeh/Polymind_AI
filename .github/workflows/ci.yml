@@ -30,11 +30,12 @@ jobs:
           extensions: pdo_pgsql, pgsql, intl, bcmath, zip
           coverage: none
       - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress --no-scripts
       - name: Prepare environment
         run: |
           cp .env.example .env
           php artisan key:generate
+          php artisan package:discover --ansi
       - name: Static analysis (Larastan)
         run: ./vendor/bin/phpstan analyse --no-progress
       - name: Code style (Pint)
