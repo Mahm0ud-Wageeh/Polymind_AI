@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Workspace;
 use App\Services\AI\AiManager;
 use App\Services\AI\Data\ChatRequest;
-use App\Services\AI\Schemas\CiscoCliSchema;
 use Illuminate\Http\Request;
 
 class CiscoCliController extends Controller
@@ -26,15 +25,15 @@ class CiscoCliController extends Controller
         $this->authorizeWorkspace($request, $data['workspace_id']);
 
         $systemPrompt = "You are a CCIE-level network engineer. You are tasked with generating production-ready Cisco CLI configuration for a {$data['platform']} {$data['device_type']}. "
-            . "Generate the configuration strictly based on the requested features and parameters. "
-            . "Do not include arbitrary configuration that was not requested. "
-            . "Include brief comments (using '!') explaining sections of the configuration. "
-            . "Return a JSON object containing the full generated 'configuration' string and an 'explanation' string.";
+            .'Generate the configuration strictly based on the requested features and parameters. '
+            .'Do not include arbitrary configuration that was not requested. '
+            ."Include brief comments (using '!') explaining sections of the configuration. "
+            ."Return a JSON object containing the full generated 'configuration' string and an 'explanation' string.";
 
         $userPrompt = "Please generate Cisco CLI configuration for the following features: \n"
-            . "- " . implode("\n- ", $data['features']) . "\n\n"
-            . "Parameters provided:\n"
-            . json_encode($data['parameters'] ?? [], JSON_PRETTY_PRINT);
+            .'- '.implode("\n- ", $data['features'])."\n\n"
+            ."Parameters provided:\n"
+            .json_encode($data['parameters'] ?? [], JSON_PRETTY_PRINT);
 
         $chatRequest = new ChatRequest(
             model: config('ai.default_model', 'gpt-4o-mini'),

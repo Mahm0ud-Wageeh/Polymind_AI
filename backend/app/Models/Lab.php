@@ -51,6 +51,6 @@ class Lab extends Model
 
     public function getLabDirectoryAttribute(): string
     {
-        return storage_path('app/labs/' . $this->id);
+        return storage_path('app/labs/'.$this->id);
     }
 }

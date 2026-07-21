@@ -19,18 +19,18 @@ class ChatToolRouter
 
     /**
      * @return array{tool:string, content?:string, systemPrompt?:string}|null
-     *   content     => رد جاهز نبثّه زي ما هو (زي التوبولوجي)
-     *   systemPrompt => نكمّل streaming عادي بس ببرومبت خبير
-     *   null        => رسالة عادية، استخدم السلوك الافتراضي
+     *                                                                        content     => رد جاهز نبثّه زي ما هو (زي التوبولوجي)
+     *                                                                        systemPrompt => نكمّل streaming عادي بس ببرومبت خبير
+     *                                                                        null        => رسالة عادية، استخدم السلوك الافتراضي
      */
     public function route(string $message, Conversation $conversation): ?array
     {
         return match ($this->classify($message)) {
             'generate_topology' => $this->topology($message, $conversation),
-            'generate_config'   => ['tool' => 'generate_config', 'systemPrompt' => $this->configPrompt()],
-            'plan_ip'           => ['tool' => 'plan_ip',         'systemPrompt' => $this->ipPrompt()],
-            'troubleshoot'      => ['tool' => 'troubleshoot',    'systemPrompt' => $this->troubleshootPrompt()],
-            default             => null,
+            'generate_config' => ['tool' => 'generate_config', 'systemPrompt' => $this->configPrompt()],
+            'plan_ip' => ['tool' => 'plan_ip',         'systemPrompt' => $this->ipPrompt()],
+            'troubleshoot' => ['tool' => 'troubleshoot',    'systemPrompt' => $this->troubleshootPrompt()],
+            default => null,
         };
     }
 
@@ -98,12 +98,12 @@ class ChatToolRouter
         try {
             NetworkDesign::create([
                 'workspace_id' => $conversation->workspace_id,
-                'user_id'      => $conversation->user_id,
-                'name'         => Str::limit($message, 40),
-                'prompt'       => $message,
-                'status'       => 'ready',
-                'summary'      => $design['summary'] ?? '',
-                'design_data'  => $design,
+                'user_id' => $conversation->user_id,
+                'name' => Str::limit($message, 40),
+                'prompt' => $message,
+                'status' => 'ready',
+                'summary' => $design['summary'] ?? '',
+                'design_data' => $design,
             ]);
         } catch (\Throwable) {
             // مش مشكلة لو الحفظ فشل، المهم نرجّع النتيجة للشات
@@ -117,7 +117,7 @@ class ChatToolRouter
     {
         $fence = str_repeat(chr(96), 3); // ثلاث علامات backtick
 
-        $md  = "## 🖧 تصميم الشبكة\n\n";
+        $md = "## 🖧 تصميم الشبكة\n\n";
         $md .= ($d['summary'] ?? '')."\n\n";
 
         $md .= "### مخطط الشبكة\n\n";
@@ -209,6 +209,7 @@ class ChatToolRouter
             if (! isset($ids[$label])) {
                 $ids[$label] = 'n'.count($ids);
             }
+
             return $ids[$label];
         };
 
@@ -217,7 +218,7 @@ class ChatToolRouter
         if (! empty($conns)) {
             foreach ($conns as $c) {
                 $from = trim((string) ($c['from'] ?? ''));
-                $to   = trim((string) ($c['to'] ?? ''));
+                $to = trim((string) ($c['to'] ?? ''));
                 if ($from === '' || $to === '') {
                     continue;
                 }
@@ -243,7 +244,10 @@ class ChatToolRouter
     private function drawio(array $d): string
     {
         $cells = '';
-        $x = 40; $y = 40; $i = 2; $pos = [];
+        $x = 40;
+        $y = 40;
+        $i = 2;
+        $pos = [];
 
         foreach (($d['devices'] ?? []) as $dev) {
             $label = htmlspecialchars((string) ($dev['name'] ?? 'device'), ENT_QUOTES);
@@ -253,7 +257,10 @@ class ChatToolRouter
                 .'style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">'
                 .'<mxGeometry x="'.$x.'" y="'.$y.'" width="120" height="50" as="geometry"/></mxCell>';
             $x += 180;
-            if ($x > 760) { $x = 40; $y += 120; }
+            if ($x > 760) {
+                $x = 40;
+                $y += 120;
+            }
             $i++;
         }
 

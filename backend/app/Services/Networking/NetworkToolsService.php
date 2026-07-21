@@ -76,6 +76,7 @@ class NetworkToolsService
             $value = $subnet['network'] ?? '';
             if (! is_string($value) || $value === '') {
                 $issues[] = $this->issue('warning', 'ip_addressing', 'Missing network', 'A subnet has no CIDR network assigned.');
+
                 continue;
             }
             try {
@@ -180,9 +181,9 @@ class NetworkToolsService
     /** @return array<string, int|string> */
     private function subnetSummary(int $address, int $prefix): array
     {
-        $mask = $prefix === 0 ? 0 : ((0xffffffff << (32 - $prefix)) & 0xffffffff);
+        $mask = $prefix === 0 ? 0 : ((0xFFFFFFFF << (32 - $prefix)) & 0xFFFFFFFF);
         $network = $address & $mask;
-        $broadcast = $network | (~$mask & 0xffffffff);
+        $broadcast = $network | (~$mask & 0xFFFFFFFF);
         $total = $prefix >= 31 ? 2 ** (32 - $prefix) : (2 ** (32 - $prefix));
         $usable = $prefix >= 31 ? $total : max(0, $total - 2);
 

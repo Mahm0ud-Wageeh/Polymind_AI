@@ -1,0 +1,349 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Laravel\\Sanctum\\PersonalAccessToken\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Api/V1/Auth/AuthController.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Socialite\\Contracts\\Provider\:\:stateless\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Api/V1/Auth/OAuthController.php
+
+		-
+			message: '#^Method App\\Models\\Agent\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Agent\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Agent\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Agent.php
+
+		-
+			message: '#^Method App\\Models\\Agent\:\:workspace\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, App\\Models\\Agent\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, \$this\(App\\Models\\Agent\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Agent.php
+
+		-
+			message: '#^Method App\\Models\\Artifact\:\:conversation\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Conversation, App\\Models\\Artifact\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Conversation, \$this\(App\\Models\\Artifact\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Artifact.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Artifact\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Message\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Method App\\Models\\Conversation\:\:artifacts\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Artifact\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Artifact, \$this\(App\\Models\\Conversation\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Method App\\Models\\Conversation\:\:messages\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Message\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Message, \$this\(App\\Models\\Conversation\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Method App\\Models\\Conversation\:\:project\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Project, App\\Models\\Conversation\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Project, \$this\(App\\Models\\Conversation\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Method App\\Models\\Conversation\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Conversation\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Conversation\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Method App\\Models\\Conversation\:\:workspace\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, App\\Models\\Conversation\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, \$this\(App\\Models\\Conversation\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Conversation.php
+
+		-
+			message: '#^Method App\\Models\\File\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\File\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\File\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/File.php
+
+		-
+			message: '#^Method App\\Models\\Lab\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Lab\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Lab\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Lab.php
+
+		-
+			message: '#^Method App\\Models\\Lab\:\:workspace\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, App\\Models\\Lab\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, \$this\(App\\Models\\Lab\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Lab.php
+
+		-
+			message: '#^Method App\\Models\\Message\:\:conversation\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Conversation, App\\Models\\Message\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Conversation, \$this\(App\\Models\\Message\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Message.php
+
+		-
+			message: '#^Method App\\Models\\NetworkDesign\:\:project\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Project, App\\Models\\NetworkDesign\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Project, \$this\(App\\Models\\NetworkDesign\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/NetworkDesign.php
+
+		-
+			message: '#^Method App\\Models\\NetworkDesign\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\NetworkDesign\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\NetworkDesign\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/NetworkDesign.php
+
+		-
+			message: '#^Method App\\Models\\NetworkDesign\:\:workspace\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, App\\Models\\NetworkDesign\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, \$this\(App\\Models\\NetworkDesign\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/NetworkDesign.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Invoice\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Subscription\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Team\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Workspace\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Method App\\Models\\Organization\:\:invoices\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Invoice\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Invoice, \$this\(App\\Models\\Organization\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Method App\\Models\\Organization\:\:members\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Organization\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Method App\\Models\\Organization\:\:owner\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Organization\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Organization\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Method App\\Models\\Organization\:\:subscriptions\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Subscription\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Subscription, \$this\(App\\Models\\Organization\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Method App\\Models\\Organization\:\:teams\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Team\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Team, \$this\(App\\Models\\Organization\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Method App\\Models\\Organization\:\:workspaces\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Workspace\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Workspace, \$this\(App\\Models\\Organization\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Type string in generic type Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, Illuminate\\Database\\Eloquent\\Relations\\Pivot, string\> in PHPDoc tag @return is not subtype of template type TPivotModel of Illuminate\\Database\\Eloquent\\Relations\\Pivot \= Illuminate\\Database\\Eloquent\\Relations\\Pivot of class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: app/Models/Organization.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^Method App\\Models\\Project\:\:conversations\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation, \$this\(App\\Models\\Project\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^Method App\\Models\\Project\:\:user\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, App\\Models\\Project\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\User, \$this\(App\\Models\\Project\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^Method App\\Models\\Project\:\:workspace\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, App\\Models\\Project\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Workspace, \$this\(App\\Models\\Project\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^Cannot call method isFuture\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/Subscription.php
+
+		-
+			message: '#^Method App\\Models\\Team\:\:members\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, \$this\(App\\Models\\Team\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Team.php
+
+		-
+			message: '#^Method App\\Models\\Team\:\:organization\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Organization, App\\Models\\Team\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Organization, \$this\(App\\Models\\Team\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Team.php
+
+		-
+			message: '#^Type string in generic type Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\User, Illuminate\\Database\\Eloquent\\Relations\\Pivot, string\> in PHPDoc tag @return is not subtype of template type TPivotModel of Illuminate\\Database\\Eloquent\\Relations\\Pivot \= Illuminate\\Database\\Eloquent\\Relations\\Pivot of class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: app/Models/Team.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\ApiKey\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:apiKeys\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\ApiKey\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\ApiKey, \$this\(App\\Models\\User\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:conversations\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation, \$this\(App\\Models\\User\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:organizations\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Organization, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Organization, \$this\(App\\Models\\User\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:teams\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Team, Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Team, \$this\(App\\Models\\User\), Illuminate\\Database\\Eloquent\\Relations\\Pivot, ''pivot''\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Type string in generic type Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Organization, Illuminate\\Database\\Eloquent\\Relations\\Pivot, string\> in PHPDoc tag @return is not subtype of template type TPivotModel of Illuminate\\Database\\Eloquent\\Relations\\Pivot \= Illuminate\\Database\\Eloquent\\Relations\\Pivot of class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Type string in generic type Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<App\\Models\\Team, Illuminate\\Database\\Eloquent\\Relations\\Pivot, string\> in PHPDoc tag @return is not subtype of template type TPivotModel of Illuminate\\Database\\Eloquent\\Relations\\Pivot \= Illuminate\\Database\\Eloquent\\Relations\\Pivot of class Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Agent\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Project\> in PHPDoc tag @return does not specify all template types of class Illuminate\\Database\\Eloquent\\Relations\\HasMany\: TRelatedModel, TDeclaringModel$#'
+			identifier: generics.lessTypes
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Method App\\Models\\Workspace\:\:agents\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Agent\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Agent, \$this\(App\\Models\\Workspace\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Method App\\Models\\Workspace\:\:conversations\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Conversation, \$this\(App\\Models\\Workspace\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Method App\\Models\\Workspace\:\:organization\(\) should return Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Organization, App\\Models\\Workspace\> but returns Illuminate\\Database\\Eloquent\\Relations\\BelongsTo\<App\\Models\\Organization, \$this\(App\\Models\\Workspace\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Method App\\Models\\Workspace\:\:projects\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Project\> but returns Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Project, \$this\(App\\Models\\Workspace\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Workspace.php
+
+		-
+			message: '#^Variable \$lastError on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: app/Services/AI/AiManager.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between array\<int, array\{role\: string, content\: string\}\>\|bool\|float\|int\|string and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Services/AI/Providers/AnthropicProvider.php
+
+		-
+			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Billing/BillingService.php
+
+		-
+			message: '#^Constant App\\Services\\Networking\\LabOrchestrator\:\:SIMULATION_DELAY_SECONDS is unused\.$#'
+			identifier: classConstant.unused
+			count: 1
+			path: app/Services/Networking/LabOrchestrator.php
+
+		-
+			message: '#^Property App\\Models\\Lab\:\:\$node_status \(string\|null\) does not accept array\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/Networking/LabOrchestrator.php

@@ -13,13 +13,13 @@ class EngineeringAgentsSeeder extends Seeder
             Agent::updateOrCreate(
                 ['name' => $agent['name'], 'is_public' => true],
                 array_merge($agent, [
-                    'is_public'    => true,
-                    'user_id'      => null,
+                    'is_public' => true,
+                    'user_id' => null,
                     'workspace_id' => null,
-                    'domain'       => 'networking',
-                    'provider'     => null,
-                    'temperature'  => 0.3,
-                    'tools'        => [],
+                    'domain' => 'networking',
+                    'provider' => null,
+                    'temperature' => 0.3,
+                    'tools' => [],
                 ]),
             );
         }

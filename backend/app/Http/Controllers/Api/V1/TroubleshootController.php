@@ -23,13 +23,13 @@ class TroubleshootController extends Controller
 
         $this->authorizeWorkspace($request, $data['workspace_id']);
 
-        $systemPrompt = "You are a CCIE-level network troubleshooting expert. Your task is to analyze the provided network information (configuration, logs, or show command output) to identify the root cause of the issue. "
-            . "Provide a clear root cause, assign a severity level (critical, high, medium, low), explain the fix step-by-step, provide the exact CLI commands to resolve the issue (if applicable), and list any best practice recommendations.";
+        $systemPrompt = 'You are a CCIE-level network troubleshooting expert. Your task is to analyze the provided network information (configuration, logs, or show command output) to identify the root cause of the issue. '
+            .'Provide a clear root cause, assign a severity level (critical, high, medium, low), explain the fix step-by-step, provide the exact CLI commands to resolve the issue (if applicable), and list any best practice recommendations.';
 
         $userPrompt = "Analyze the following network {$data['type']}:\n\n"
-            . "Input:\n{$data['input']}\n\n";
+            ."Input:\n{$data['input']}\n\n";
 
-        if (!empty($data['context'])) {
+        if (! empty($data['context'])) {
             $userPrompt .= "Additional Context/Symptoms:\n{$data['context']}\n";
         }
 
